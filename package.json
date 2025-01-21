@@ -12,6 +12,10 @@
       {
         "command": "hello-world.showHelloWorld",
         "title": "Hello World (React + Vite): Show"
+      },
+      {
+        "command": "idev2.handleLoginCallback",
+        "title": "Handle Callback"
       }
     ],
     "viewsContainers": {

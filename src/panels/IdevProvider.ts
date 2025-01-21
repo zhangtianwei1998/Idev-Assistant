@@ -51,5 +51,19 @@ export class IdevProvider implements vscode.WebviewViewProvider {
       webviewView.webview,
       this.context.extensionUri
     );
+
+    webviewView.webview.onDidReceiveMessage(async (message) => {
+      console.log("testmessage");
+      if (message.command === "login") {
+        // Check login status
+        const token = this.context.globalState.get("idevToken");
+        if (!token) {
+          // Open browser for login
+          vscode.env.openExternal(vscode.Uri.parse("https://idev2.ctripcorp.com/"));
+        } else {
+          vscode.window.showInformationMessage("Already logged in!");
+        }
+      }
+    });
   }
 }

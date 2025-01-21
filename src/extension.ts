@@ -12,5 +12,7 @@ export function activate(context: ExtensionContext) {
   // Add command to the extension context
   context.subscriptions.push(showHelloWorldCommand);
 
-  vscode.window.registerWebviewViewProvider("idev-assistant", new IdevProvider(context));
+  const provider = new IdevProvider(context);
+
+  context.subscriptions.push(vscode.window.registerWebviewViewProvider("idev-assistant", provider));
 }
