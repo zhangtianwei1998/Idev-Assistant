@@ -1,6 +1,6 @@
 {
-  "name": "hello-world-react-vite",
-  "displayName": "hello-world-react-vite",
+  "name": "idev-assistant",
+  "displayName": "Idev Assistant",
   "description": "A hello world sample extension to demonstrate using React + Vite with the Webview UI Toolkit for VS Code.",
   "version": "0.0.1",
   "engines": {
@@ -13,7 +13,25 @@
         "command": "hello-world.showHelloWorld",
         "title": "Hello World (React + Vite): Show"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "idev-explorer",
+          "title": "idev Explorer",
+          "icon": "assets/Idevlogo.png"
+        }
+      ]
+    },
+    "views": {
+      "idev-explorer": [
+        {
+          "type": "webview",
+          "id": "idev-assistant",
+          "name": "Idev2-assistant"
+        }
+      ]
+    }
   },
   "scripts": {
     "install:all": "npm install && cd webview-ui && npm install",
