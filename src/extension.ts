@@ -14,17 +14,18 @@ export function activate(context: ExtensionContext) {
 
   const provider = new IdevProvider(context);
 
-  context.subscriptions.push(vscode.window.registerWebviewViewProvider("idev-assistant", provider));
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider(IdevProvider.viewType, provider)
+  );
 
   context.subscriptions.push(
     vscode.window.registerUriHandler({
       handleUri(uri: vscode.Uri) {
-        console.log("testuri", uri);
         if (uri.path === "/handleLoginCallback") {
           const token = extractTokenFromUri(uri);
           if (token) {
             context.globalState.update("idevToken", token);
-            vscode.window.showInformationMessage("Login successful!");
+            provider.postdata();
           }
         }
       },

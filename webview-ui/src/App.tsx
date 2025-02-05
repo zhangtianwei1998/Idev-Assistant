@@ -26,7 +26,7 @@ function App() {
     };
   }, []);
 
-  const token = vscode.getState;
+  const token = vscode.getState();
 
   return (
     <main>

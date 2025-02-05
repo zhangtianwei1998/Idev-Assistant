@@ -6,7 +6,9 @@ import axios from "axios";
 import { issueParmas } from "../constant";
 
 export class IdevProvider implements vscode.WebviewViewProvider {
-  context: vscode.ExtensionContext;
+  private context: vscode.ExtensionContext;
+  public static readonly viewType = "idev-assistant";
+  private _view?: vscode.WebviewView;
   constructor(context: vscode.ExtensionContext) {
     this.context = context;
   }
@@ -39,6 +41,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
   }
   // 实现 resolveWebviewView 方法，用于处理 WebviewView 的创建和设置
   async resolveWebviewView(webviewView: vscode.WebviewView): Promise<void> {
+    this._view = webviewView;
     // 配置 WebviewView 的选项
     webviewView.webview.options = {
       enableScripts: true,
@@ -67,7 +70,11 @@ export class IdevProvider implements vscode.WebviewViewProvider {
         }
       }
     });
-
+  }
+  public async postdata() {
+    if (!this._view) {
+      return;
+    }
     const idevtoken = this.context.globalState.get("idevToken");
     try {
       if (idevtoken) {
@@ -81,13 +88,13 @@ export class IdevProvider implements vscode.WebviewViewProvider {
         });
         const { data: userInfo } = await request.get("userinfo/userObj");
         console.log("testuserInfo", userInfo);
-        webviewView.webview.postMessage({ command: "userInfo", data: userInfo.data });
+        this._view.webview.postMessage({ command: "userInfo", data: userInfo.data });
         issueParmas.filterParamsList[0].vobjlist.push({
           id: userInfo.id,
           desc: userInfo.name,
         });
         const { data: issueList } = await request.post("issue/query/tree", { data: issueParmas });
-        webviewView.webview.postMessage({ command: "issueList", data: issueList.data });
+        this._view.webview.postMessage({ command: "issueList", data: issueList.data });
         console.log("testissueList", issueList);
       }
     } catch (e) {
