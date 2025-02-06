@@ -1,12 +1,17 @@
-let userInfo;
-let issueList = [];
-let issueListProxy = new Proxy(issueList, {
-  set(target, property, value, receiver) {
+let webviewData = { issueList: [], userInfo: {} };
+let dataProxy = new Proxy(webviewData, {
+  set(target, property, value) {
     target[property] = value;
-    if (property !== "length") {
+    if (property === "issueList") {
       const issueListElement = document.querySelector("issue-list");
       if (issueListElement) {
         issueListElement.render();
+      }
+    }
+    if (property === "userInfo") {
+      const userInfoElement = document.querySelector("user-info");
+      if (userInfoElement) {
+        userInfoElement.render();
       }
     }
     return true;
@@ -17,11 +22,10 @@ window.addEventListener("message", (event) => {
   const data = event.data;
   switch (data.command) {
     case "userInfo":
-      userInfo = data.data;
+      dataProxy.userInfo = data.data;
       break;
     case "issueList":
-      issueListProxy.length = 0; // Clear the existing list
-      data.data.forEach((item) => issueListProxy.push(item)); // Add new items
+      dataProxy.issueList = data.data; // Add new items
       break;
   }
 });
@@ -83,7 +87,7 @@ class IssueList extends HTMLElement {
 
   render() {
     const container = document.createElement("div");
-    issueList.forEach((item) => {
+    webviewData.issueList.forEach((item) => {
       const issueElement = document.createElement("issue-item");
       issueElement.setAttribute("icon-id", item.iconId);
       issueElement.setAttribute("issue-key", item.key);

@@ -91,33 +91,41 @@ export class IdevProvider implements vscode.WebviewViewProvider {
       return;
     }
     const idevtoken = this.context.globalState.get("idevToken");
+    const userInfo = this.context.globalState.get("userInfo");
+    const issueList = this.context.globalState.get("issueList");
+    console.log("test1", { idevtoken, userInfo, issueList });
     try {
-      if (idevtoken) {
-        const request = axios.create({
-          baseURL: "https://idev2-00.fat6.qa.nt.ctripcorp.com/api/",
-          headers: {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            UserToken: idevtoken as string,
-          },
-          timeout: 10000, // 设置请求超时时间（可选）
-        });
-        const { data: userInfo } = await request.get("userinfo/userObj");
-        console.log("testuserInfo", userInfo);
-        this._view.webview.postMessage({ command: "userInfo", data: userInfo.data });
-        issueParmas.filterParamsList[0].vobjlist.push({
-          id: userInfo.id,
-          desc: userInfo.name,
-        });
-        const { data: issueList } = await request.post("issue/query/tree", { data: issueParmas });
-        console.log("testissueList", issueList);
-        const issueListData = issueList.data.records.map((item: any) => ({
-          iconId: item.issueType.iconId,
-          key: item.issueKey,
-          title: item.title,
-          branchList: ["feature/123", "feature/456"],
-        }));
-        this._view.webview.postMessage({ command: "issueList", data: issueListData });
-        console.log("testdata", issueListData);
+      if (userInfo && issueList) {
+        this._view.webview.postMessage({ command: "userInfo", data: userInfo });
+        this._view.webview.postMessage({ command: "issueList", data: issueList });
+      } else {
+        if (idevtoken) {
+          const request = axios.create({
+            baseURL: "https://idev2-00.fat6.qa.nt.ctripcorp.com/api/",
+            headers: {
+              userToken: idevtoken as string,
+            },
+            timeout: 10000, // 设置请求超时时间（可选）
+          });
+
+          const [{ data: userInfo }, { data: issueList }] = await Promise.all([
+            request.get("userinfo/userObj"),
+            request.post("issuefilter/view", issueParmas),
+          ]);
+          const issueListData = issueList.data.records.map((item: any) => ({
+            iconId: item.issueType.iconId,
+            key: item.issueKey,
+            title: item.title,
+            branchList: ["feature/123", "feature/456"],
+          }));
+
+          this.context.globalState.update("userInfo", userInfo.data);
+          this.context.globalState.update("issueList", issueListData);
+          console.log("test1set", { userInfo: userInfo.data, issueList });
+          // console.log("testdata", { userInfo, issueList });
+          this._view.webview.postMessage({ command: "userInfo", data: userInfo.data });
+          this._view.webview.postMessage({ command: "issueList", data: issueListData });
+        }
       }
     } catch (e) {
       console.log("e", e);
