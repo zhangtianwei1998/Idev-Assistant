@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="20px" height="20px" viewBox="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>issuetype</title>
+    <g id="issuetype" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect id="矩形" fill="#9DA8B5" x="0" y="0" width="20" height="20" rx="2"></rect>
+        <path d="M13,4 C13.530433,4 14.0391408,4.21071368 14.4142136,4.58578644 C14.7892863,4.96085919 15,5.46956702 15,6 L15,16 L7,16 C5.8954305,16 5,15.1045695 5,14 L5,4 L13,4 Z M10,11 L8,11 C7.44771525,11 7,11.4477153 7,12 C7,12.5522847 7.44771525,13 8,13 L10,13 C10.5522847,13 11,12.5522847 11,12 C11,11.4477153 10.5522847,11 10,11 Z M12,7 L8,7 C7.44771525,7 7,7.44771525 7,8 C7,8.55228475 7.44771525,9 8,9 L12,9 C12.5522847,9 13,8.55228475 13,8 C13,7.44771525 12.5522847,7 12,7 L12,7 Z" id="形状" fill="#FFFFFF" fill-rule="nonzero"></path>
+    </g>
+</svg>

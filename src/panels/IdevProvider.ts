@@ -18,6 +18,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
     // const stylesUri = getUri(webview, extensionUri, ["webview-ui", "build", "assets", "index.css"]);
     // The JS file from the React build output
     const scriptUri = getUri(webview, extensionUri, ["webview-ui", "index.js"]);
+    const iconUriPrefix = getUri(webview, extensionUri, ["webview-ui", "assets"]);
 
     const nonce = getNonce();
 
@@ -34,22 +35,31 @@ export class IdevProvider implements vscode.WebviewViewProvider {
 				<title>Cat Coding</title>
 			</head>
 			<body>
-
-     <issue-list></issue-list>
-     <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
+      <img src="${iconUriPrefix}/issueType/02.svg" alt="SVG Image" />
+      <object
+      class="icon"
+      data="${iconUriPrefix}/issueType/02.svg"
+      type="image/svg+xml"
+      id="${123}"
+      style="width: 14px; height: 14px"
+    ></object>
+      123
+      <issue-list></issue-list>
+      <script>window.iconPrefix ="${iconUriPrefix}" </script>
+      <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
 
 			</body>
 			</html>`;
   }
-  // 实现 resolveWebviewView 方法，用于处理 WebviewView 的创建和设置
+
   async resolveWebviewView(webviewView: vscode.WebviewView): Promise<void> {
     this._view = webviewView;
-    // 配置 WebviewView 的选项
+
     webviewView.webview.options = {
       enableScripts: true,
       localResourceRoots: [this.context.extensionUri],
     };
-    // 设置 WebviewView 的 HTML 内容，可以在这里指定要加载的网页内容
+
     webviewView.webview.html = this._getWebviewContent(
       webviewView.webview,
       this.context.extensionUri

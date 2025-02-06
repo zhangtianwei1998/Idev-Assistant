@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="20px" height="20px" viewBox="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>roadmap</title>
+    <g id="roadmap" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect id="矩形" fill="#2EB343" x="0" y="0" width="20" height="20" rx="2"></rect>
+        <rect id="矩形备份" fill="#FFFFFF" x="4" y="13" width="9" height="3" rx="1.39999998"></rect>
+        <rect id="矩形备份-2" fill="#FFFFFF" x="7" y="8" width="10" height="3" rx="1.39999998"></rect>
+        <rect id="矩形备份-3" fill="#FFFFFF" x="4" y="3" width="7" height="3" rx="1.39999998"></rect>
+    </g>
+</svg>

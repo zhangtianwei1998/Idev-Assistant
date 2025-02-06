@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="20px" height="20px" viewBox="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>yuliu6</title>
+    <g id="yuliu6" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect id="矩形" fill="#2EB343" x="0" y="0" width="20" height="20" rx="2"></rect>
+        <path d="M6,8.5 L14,8.5 C14.8284271,8.5 15.5,9.17157288 15.5,10 C15.5,10.8284271 14.8284271,11.5 14,11.5 L6,11.5 C5.17157288,11.5 4.5,10.8284271 4.5,10 C4.5,9.17157288 5.17157288,8.5 6,8.5 Z" id="矩形备份-3" fill="#FFFFFF" transform="translate(10, 10) rotate(-270) translate(-10, -10)"></path>
+        <path d="M6,8.5 L14,8.5 C14.8284271,8.5 15.5,9.17157288 15.5,10 C15.5,10.8284271 14.8284271,11.5 14,11.5 L6,11.5 C5.17157288,11.5 4.5,10.8284271 4.5,10 C4.5,9.17157288 5.17157288,8.5 6,8.5 Z" id="矩形备份-4" fill="#FFFFFF"></path>
+    </g>
+</svg>

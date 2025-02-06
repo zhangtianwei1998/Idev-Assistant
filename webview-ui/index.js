@@ -106,6 +106,7 @@ class IssueItem extends HTMLElement {
                       margin: 10px 0;
                   }
                   .icon {
+                      border-radius: 2px;
                       width: 14px;
                       height: 14px;
                       display: inline-block;
@@ -131,7 +132,9 @@ class IssueItem extends HTMLElement {
               </style>
               <div class="issue-item">
                   <div class="header" >
-                  <div class="icon" id="${iconId}"></div>
+                  <img class="icon" src="${
+                    window.iconPrefix
+                  }/issueType/02.svg"  id="${iconId}"></object>
                   <div class="key"> ${issueKey}</div>
                   </div>
                   <div class="title">${title}</div>
