@@ -95,7 +95,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
     const issueList = this.context.globalState.get("issueList");
     console.log("test1", { idevtoken, userInfo, issueList });
     try {
-      if (userInfo && issueList) {
+      if (idevtoken && userInfo && issueList) {
         this._view.webview.postMessage({ command: "userInfo", data: userInfo });
         this._view.webview.postMessage({ command: "issueList", data: issueList });
       } else {
@@ -121,10 +121,10 @@ export class IdevProvider implements vscode.WebviewViewProvider {
 
           this.context.globalState.update("userInfo", userInfo.data);
           this.context.globalState.update("issueList", issueListData);
-          console.log("test1set", { userInfo: userInfo.data, issueList });
-          // console.log("testdata", { userInfo, issueList });
           this._view.webview.postMessage({ command: "userInfo", data: userInfo.data });
           this._view.webview.postMessage({ command: "issueList", data: issueListData });
+        } else {
+          this._view.webview.postMessage({ command: "needLogin" });
         }
       }
     } catch (e) {

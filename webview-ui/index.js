@@ -1,3 +1,5 @@
+const vsCodeApi = acquireVsCodeApi();
+
 let webviewData = { issueList: [], userInfo: {} };
 let dataProxy = new Proxy(webviewData, {
   set(target, property, value) {
@@ -21,6 +23,10 @@ let dataProxy = new Proxy(webviewData, {
 window.addEventListener("message", (event) => {
   const data = event.data;
   switch (data.command) {
+    case "needLogin":
+      vsCodeApi.postMessage({
+        command: "login",
+      });
     case "userInfo":
       dataProxy.userInfo = data.data;
       break;
