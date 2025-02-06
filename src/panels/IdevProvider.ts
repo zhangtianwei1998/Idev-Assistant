@@ -35,15 +35,6 @@ export class IdevProvider implements vscode.WebviewViewProvider {
 				<title>Cat Coding</title>
 			</head>
 			<body>
-      <img src="${iconUriPrefix}/issueType/02.svg" alt="SVG Image" />
-      <object
-      class="icon"
-      data="${iconUriPrefix}/issueType/02.svg"
-      type="image/svg+xml"
-      id="${123}"
-      style="width: 14px; height: 14px"
-    ></object>
-      123
       <issue-list></issue-list>
       <script>window.iconPrefix ="${iconUriPrefix}" </script>
       <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
@@ -81,7 +72,20 @@ export class IdevProvider implements vscode.WebviewViewProvider {
         }
       }
     });
+
+    webviewView.onDidChangeVisibility(() => {
+      if (webviewView.visible) {
+        // Call postdata when the webview becomes visible
+        this.postdata();
+      }
+    });
+
+    if (webviewView.visible) {
+      // Call postdata when the webview becomes visible
+      this.postdata();
+    }
   }
+
   public async postdata() {
     if (!this._view) {
       return;
@@ -105,8 +109,15 @@ export class IdevProvider implements vscode.WebviewViewProvider {
           desc: userInfo.name,
         });
         const { data: issueList } = await request.post("issue/query/tree", { data: issueParmas });
-        this._view.webview.postMessage({ command: "issueList", data: issueList.data });
         console.log("testissueList", issueList);
+        const issueListData = issueList.data.records.map((item: any) => ({
+          iconId: item.issueType.iconId,
+          key: item.issueKey,
+          title: item.title,
+          branchList: ["feature/123", "feature/456"],
+        }));
+        this._view.webview.postMessage({ command: "issueList", data: issueListData });
+        console.log("testdata", issueListData);
       }
     } catch (e) {
       console.log("e", e);

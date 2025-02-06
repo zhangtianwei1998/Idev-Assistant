@@ -1,17 +1,31 @@
-const data = [
-  {
-    iconId: "icon1",
-    issueKey: "ISSUE-001",
-    title: "Issue Title 1",
-    branchList: ["branch1", "branch2"],
+let userInfo;
+let issueList = [];
+let issueListProxy = new Proxy(issueList, {
+  set(target, property, value, receiver) {
+    target[property] = value;
+    if (property !== "length") {
+      const issueListElement = document.querySelector("issue-list");
+      if (issueListElement) {
+        issueListElement.render();
+      }
+    }
+    return true;
   },
-  {
-    iconId: "icon2",
-    issueKey: "ISSUE-002",
-    title: "Issue Title 2",
-    branchList: ["branch3", "branch4"],
-  },
-];
+});
+
+window.addEventListener("message", (event) => {
+  const data = event.data;
+  switch (data.command) {
+    case "userInfo":
+      userInfo = data.data;
+      break;
+    case "issueList":
+      issueListProxy.length = 0; // Clear the existing list
+      data.data.forEach((item) => issueListProxy.push(item)); // Add new items
+      break;
+  }
+});
+
 function stringToColor(str) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -51,6 +65,11 @@ function getColorsFromStr(str) {
   return { backgroundColor, textColor };
 }
 
+function getIconId(iconId) {
+  const id = iconId ? iconId + "" : 0;
+  return id ? (Number(id) < 10 ? 0 + id : id) : 0;
+}
+
 // Define the custom element
 class IssueList extends HTMLElement {
   constructor() {
@@ -64,10 +83,10 @@ class IssueList extends HTMLElement {
 
   render() {
     const container = document.createElement("div");
-    data.forEach((item) => {
+    issueList.forEach((item) => {
       const issueElement = document.createElement("issue-item");
       issueElement.setAttribute("icon-id", item.iconId);
-      issueElement.setAttribute("issue-key", item.issueKey);
+      issueElement.setAttribute("issue-key", item.key);
       issueElement.setAttribute("title", item.title);
       issueElement.setAttribute("branch-list", JSON.stringify(item.branchList));
       container.appendChild(issueElement);
@@ -132,9 +151,9 @@ class IssueItem extends HTMLElement {
               </style>
               <div class="issue-item">
                   <div class="header" >
-                  <img class="icon" src="${
-                    window.iconPrefix
-                  }/issueType/02.svg"  id="${iconId}"></object>
+                  <img class="icon" src="${window.iconPrefix}/issueType/${getIconId(
+      iconId
+    )}.svg"  id="${iconId}"></object>
                   <div class="key"> ${issueKey}</div>
                   </div>
                   <div class="title">${title}</div>
