@@ -15,29 +15,31 @@ export class IdevProvider implements vscode.WebviewViewProvider {
 
   private _getWebviewContent(webview: Webview, extensionUri: Uri) {
     // The CSS file from the React build output
-    const stylesUri = getUri(webview, extensionUri, ["webview-ui", "build", "assets", "index.css"]);
+    // const stylesUri = getUri(webview, extensionUri, ["webview-ui", "build", "assets", "index.css"]);
     // The JS file from the React build output
-    const scriptUri = getUri(webview, extensionUri, ["webview-ui", "build", "assets", "index.js"]);
+    const scriptUri = getUri(webview, extensionUri, ["webview-ui", "index.js"]);
 
     const nonce = getNonce();
 
     // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
-    return /*html*/ `
-        <!DOCTYPE html>
-        <html lang="en">
-          <head>
-            <meta charset="UTF-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-            <meta http-equiv="Content-Security-Policy" content="default-src 'none';  style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
-            <link rel="stylesheet" type="text/css" href="${stylesUri}">
-            <title>Hello World</title>
-          </head>
-          <body>
-            <div id="root"></div>
-            <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
-          </body>
-        </html>
-      `;
+    return `<!DOCTYPE html>
+			<html lang="en">
+			<head>
+				<meta charset="UTF-8">
+				<!--
+					Use a content security policy to only allow loading images from https or from our extension directory,
+					and only allow scripts that have a specific nonce.
+				-->
+				<meta name="viewport" content="width=device-width, initial-scale=1.0">
+				<title>Cat Coding</title>
+			</head>
+			<body>
+
+     <issue-list></issue-list>
+     <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
+
+			</body>
+			</html>`;
   }
   // 实现 resolveWebviewView 方法，用于处理 WebviewView 的创建和设置
   async resolveWebviewView(webviewView: vscode.WebviewView): Promise<void> {
@@ -47,7 +49,6 @@ export class IdevProvider implements vscode.WebviewViewProvider {
       enableScripts: true,
       localResourceRoots: [this.context.extensionUri],
     };
-    console.log("teestresolve");
     // 设置 WebviewView 的 HTML 内容，可以在这里指定要加载的网页内容
     webviewView.webview.html = this._getWebviewContent(
       webviewView.webview,
