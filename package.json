@@ -11,10 +11,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "hello-world.showHelloWorld",
-        "title": "Hello World (React + Vite): Show"
-      },
-      {
         "command": "extension.clearIdevToken",
         "title": "Clear idevToken"
       }

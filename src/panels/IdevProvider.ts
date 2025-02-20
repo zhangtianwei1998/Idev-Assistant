@@ -4,6 +4,7 @@ import { getUri } from "../utilities/getUri";
 import { getNonce } from "../utilities/getNonce";
 import axios from "axios";
 import { issueParmas } from "../constant";
+import { exec } from "child_process";
 
 export class IdevProvider implements vscode.WebviewViewProvider {
   private context: vscode.ExtensionContext;
@@ -14,15 +15,11 @@ export class IdevProvider implements vscode.WebviewViewProvider {
   }
 
   private _getWebviewContent(webview: Webview, extensionUri: Uri) {
-    // The CSS file from the React build output
-    // const stylesUri = getUri(webview, extensionUri, ["webview-ui", "build", "assets", "index.css"]);
-    // The JS file from the React build output
     const scriptUri = getUri(webview, extensionUri, ["webview-ui", "index.js"]);
     const iconUriPrefix = getUri(webview, extensionUri, ["webview-ui", "assets"]);
 
     const nonce = getNonce();
 
-    // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
     return `<!DOCTYPE html>
 			<html lang="en">
 			<head>
@@ -59,29 +56,45 @@ export class IdevProvider implements vscode.WebviewViewProvider {
     const token = this.context.globalState.get("idevToken");
 
     webviewView.webview.onDidReceiveMessage(async (message) => {
-      if (message.command === "login") {
-        // Check login status
+      switch (message.command) {
+        case "login": {
+          if (!token) {
+            // Open browser for login
+            vscode.env.openExternal(
+              vscode.Uri.parse("http://sharklocal.ctripcorp.com:5173/vscodeExtension")
+            );
+          } else {
+            vscode.window.showInformationMessage("Already logged in!");
+          }
+        }
+        case "linkBranch": {
+          const workspaceFolders = vscode.workspace.workspaceFolders;
+          if (workspaceFolders === undefined) {
+            vscode.window.showErrorMessage("Failed to get branch name.");
+            return;
+          }
+          const workspacePath = workspaceFolders[0].uri.fsPath;
+          exec("git rev-parse --abbrev-ref HEAD", { cwd: workspacePath }, (err, stdout, stderr) => {
+            if (err) {
+              vscode.window.showErrorMessage("Failed to get branch name.");
+              console.error(stderr);
+              return;
+            }
 
-        if (!token) {
-          // Open browser for login
-          vscode.env.openExternal(
-            vscode.Uri.parse("http://sharklocal.ctripcorp.com:5173/vscodeExtension")
-          );
-        } else {
-          vscode.window.showInformationMessage("Already logged in!");
+            const branchName = stdout.trim();
+            vscode.window.showInformationMessage(`${branchName} link success`);
+          });
         }
       }
     });
 
     webviewView.onDidChangeVisibility(() => {
       if (webviewView.visible) {
-        // Call postdata when the webview becomes visible
         this.postdata();
       }
     });
 
     if (webviewView.visible) {
-      // Call postdata when the webview becomes visible
       this.postdata();
     }
   }
@@ -93,7 +106,6 @@ export class IdevProvider implements vscode.WebviewViewProvider {
     const idevtoken = this.context.globalState.get("idevToken");
     const userInfo = this.context.globalState.get("userInfo");
     const issueList = this.context.globalState.get("issueList");
-    console.log("test1", { idevtoken, userInfo, issueList });
     try {
       if (idevtoken && userInfo && issueList) {
         this._view.webview.postMessage({ command: "userInfo", data: userInfo });
@@ -124,6 +136,8 @@ export class IdevProvider implements vscode.WebviewViewProvider {
           this._view.webview.postMessage({ command: "userInfo", data: userInfo.data });
           this._view.webview.postMessage({ command: "issueList", data: issueListData });
         } else {
+          this.context.globalState.update("userInfo", undefined);
+          this.context.globalState.update("issueList", undefined);
           this._view.webview.postMessage({ command: "needLogin" });
         }
       }

@@ -126,7 +126,14 @@ class IssueItem extends HTMLElement {
     template.innerHTML = `
               <style>
                   .header {
+                      width:100%;
                       display: flex;
+                      align-items: center;
+                  }
+                  .middle {
+                      width:100%;
+                      display: flex;
+                      justify-content:space-between;
                       align-items: center;
                   }
                   .issue-item {
@@ -163,10 +170,15 @@ class IssueItem extends HTMLElement {
                   <div class="header" >
                   <img class="icon" src="${window.iconPrefix}/issueType/${getIconId(
       iconId
-    )}.svg"  id="${iconId}"></object>
+    )}.svg"  id="${iconId}"></img>
                   <div class="key"> ${issueKey}</div>
                   </div>
-                  <div class="title">${title}</div>
+                <div class="middle"> 
+                 <div class="title">${title}</div>
+                 <button class="link-branch"><img class="icon" src="${
+                   window.iconPrefix
+                 }/operation/link.svg"  "></img></button>
+                   </div>
                   <div class="branchesContainer">
                       ${branchList
                         .map((branch) => {
@@ -179,6 +191,11 @@ class IssueItem extends HTMLElement {
           `;
 
     this.shadowRoot.appendChild(template.content.cloneNode(true));
+
+    const button = this.shadowRoot.querySelector(".link-branch");
+    button.addEventListener("click", () => {
+      vsCodeApi.postMessage({ command: "linkBranch" });
+    });
   }
 }
 
