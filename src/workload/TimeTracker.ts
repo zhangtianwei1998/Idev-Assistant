@@ -39,12 +39,11 @@ export class TimeTracker {
     this.context = context;
     this.idleThreshold = idleThreshold ?? 300000; // 默认5分钟
     this.statusBarManager = statusBarManager;
-
-    // 恢复保存的状态
-    const savedState = context.globalState.get<WorkdataList>("workLoadData");
-    if (savedState) {
-      this.workLoadData = savedState;
-    }
+    this.workingIssue = context.globalState.get<WorkingIssueData | undefined>("workingIssue") || {
+      id: "",
+      isWorking: false,
+    };
+    this.workLoadData = context.globalState.get<WorkdataList>("workLoadData") || {};
 
     // 注册活动检测
     vscode.workspace.onDidChangeTextDocument(() => this.recordActivity());
