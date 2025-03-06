@@ -24,13 +24,21 @@ export function activate(context: ExtensionContext) {
     })
   );
 
-  let disposable = vscode.commands.registerCommand("extension.clearIdevToken", function () {
+  let tokendisposable = vscode.commands.registerCommand("extension.idevLogout", function () {
     // 清除 idevToken
     context.globalState.update("idevToken", undefined);
-    vscode.window.showInformationMessage("idevToken has been cleared.");
+    vscode.window.showInformationMessage("已退出登录");
   });
 
-  context.subscriptions.push(disposable);
+  context.subscriptions.push(tokendisposable);
+
+  let workloadDisposable = vscode.commands.registerCommand("extension.clearWorkload", function () {
+    // 清除 idevToken
+    context.globalState.update("workLoadData", undefined);
+    vscode.window.showInformationMessage("工作量数据已全部清除");
+  });
+
+  context.subscriptions.push(workloadDisposable);
 }
 
 function extractTokenFromUri(uri: vscode.Uri): string | null {

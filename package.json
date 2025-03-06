@@ -11,8 +11,12 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.clearIdevToken",
-        "title": "Clear idevToken"
+        "command": "extension.idevLogout",
+        "title": "idev退出登录"
+      },
+      {
+        "command": "extension.clearWorkload",
+        "title": "清除idev工作量数据"
       }
     ],
     "viewsContainers": {
@@ -57,6 +61,8 @@
     "vscode-test": "^1.5.0"
   },
   "dependencies": {
-    "axios": "^1.7.9"
+    "axios": "^1.7.9",
+    "dayjs": "^1.11.13",
+    "duration": "link:dayjs/plugin/duration"
   }
 }

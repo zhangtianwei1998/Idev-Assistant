@@ -5,13 +5,16 @@ import { getNonce } from "../utilities/getNonce";
 import axios from "axios";
 import { issueParmas } from "../constant";
 import { exec } from "child_process";
+import { TimeTracker } from "../workload/TimeTracker";
 
 export class IdevProvider implements vscode.WebviewViewProvider {
   private context: vscode.ExtensionContext;
+  private timeTracker: TimeTracker;
   public static readonly viewType = "idev-assistant";
   private _view?: vscode.WebviewView;
   constructor(context: vscode.ExtensionContext) {
     this.context = context;
+    this.timeTracker = new TimeTracker(context, 10000);
   }
 
   private _getWebviewContent(webview: Webview, extensionUri: Uri) {
@@ -55,6 +58,10 @@ export class IdevProvider implements vscode.WebviewViewProvider {
 
     const token = this.context.globalState.get("idevToken");
 
+    const pushWorkloadtimer = setInterval(() => {
+      this.updateFrontendWorkLoad();
+    }, 2000);
+
     webviewView.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
         case "login": {
@@ -84,6 +91,20 @@ export class IdevProvider implements vscode.WebviewViewProvider {
             const branchName = stdout.trim();
             vscode.window.showInformationMessage(`${branchName} link success`);
           });
+        }
+        case "startwork": {
+          this.timeTracker.startTracking(message.issueKey);
+          this.updateFrontendWorkLoad();
+          this.changeWorkingIssue();
+          vscode.window.showInformationMessage("工作时间统计已开始");
+          break;
+        }
+        case "endwork": {
+          this.timeTracker.stopTracking();
+          this.updateFrontendWorkLoad();
+          this.changeWorkingIssue();
+          vscode.window.showInformationMessage("工作时间统计已结束");
+          //结束计时
         }
       }
     });
@@ -144,5 +165,61 @@ export class IdevProvider implements vscode.WebviewViewProvider {
     } catch (e) {
       console.log("e", e);
     }
+  }
+
+  private async reportWorkTime(duration: number) {
+    try {
+      const token = this.context.globalState.get("idevToken");
+      if (!token) {
+        throw new Error("未登录");
+      }
+
+      // 示例上报逻辑（需根据实际API调整）
+      const response = await axios.post(
+        "https://idev2-00.fat6.qa.nt.ctripcorp.com/api/worklogs",
+        {
+          duration: duration,
+          timestamp: Date.now(),
+        },
+        {
+          headers: {
+            userToken: token as string,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        vscode.window.showInformationMessage("工时上报成功");
+      }
+    } catch (error: any) {
+      vscode.window.showErrorMessage(`上报失败: ${error.message}`);
+    }
+  }
+
+  private updateFrontendWorkLoad() {
+    if (!this._view) {
+      return;
+    }
+    this._view.webview.postMessage({
+      command: "timerUpdate",
+      workloadData: this.timeTracker.getDurationData(),
+      workIssue: this.timeTracker.getworkingIssue(),
+    });
+  }
+
+  private changeWorkingIssue() {
+    if (!this._view) {
+      return;
+    }
+    this._view.webview.postMessage({
+      command: "workingIssueChange",
+    });
+  }
+
+  // 添加定时状态更新
+  private startStatusUpdates() {
+    setInterval(() => {
+      this.updateFrontendWorkLoad();
+    }, 1000);
   }
 }
