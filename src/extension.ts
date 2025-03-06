@@ -2,9 +2,15 @@ import { commands, ExtensionContext } from "vscode";
 import * as vscode from "vscode";
 
 import { IdevProvider } from "./panels/IdevProvider";
+import { extractTokenFromUri } from "./utilities/extractTokenFromUri";
+import { StatusBarManager } from "./statusBar";
+import { TimeTracker } from "./workload/TimeTracker";
 
 export function activate(context: ExtensionContext) {
-  const provider = new IdevProvider(context);
+  const statusBarManager = new StatusBarManager(context);
+  const timeTracker = new TimeTracker(context, statusBarManager, 10000);
+
+  const provider = new IdevProvider(context, timeTracker);
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(IdevProvider.viewType, provider)
@@ -24,6 +30,8 @@ export function activate(context: ExtensionContext) {
     })
   );
 
+  const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+
   let tokendisposable = vscode.commands.registerCommand("extension.idevLogout", function () {
     // 清除 idevToken
     context.globalState.update("idevToken", undefined);
@@ -39,9 +47,4 @@ export function activate(context: ExtensionContext) {
   });
 
   context.subscriptions.push(workloadDisposable);
-}
-
-function extractTokenFromUri(uri: vscode.Uri): string | null {
-  const query = new URLSearchParams(uri.query);
-  return query.get("token");
 }

@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import * as dayjs from "dayjs";
 import * as duration from "dayjs/plugin/duration";
 import { getDurationString } from "../utilities/getduration";
+import { StatusBarManager } from "../statusBar";
 
 type TrackingState = {
   startTimestamp: dayjs.Dayjs;
@@ -11,7 +12,7 @@ type TrackingState = {
 
 type WorkdataList = Record<string, TrackingState>;
 
-type WorkingIssueData = {
+export type WorkingIssueData = {
   id: string;
   isWorking: boolean;
 };
@@ -25,14 +26,19 @@ const getInitWorkLoad = () => ({
 export class TimeTracker {
   private workingIssue: WorkingIssueData = { id: "", isWorking: false };
   private workLoadData: WorkdataList = {};
-
+  private statusBarManager: StatusBarManager;
   private readonly idleThreshold: number;
   private activityTimer?: NodeJS.Timeout;
   private context: vscode.ExtensionContext;
 
-  constructor(context: vscode.ExtensionContext, idleThreshold?: number) {
+  constructor(
+    context: vscode.ExtensionContext,
+    statusBarManager: StatusBarManager,
+    idleThreshold?: number
+  ) {
     this.context = context;
     this.idleThreshold = idleThreshold ?? 300000; // 默认5分钟
+    this.statusBarManager = statusBarManager;
 
     // 恢复保存的状态
     const savedState = context.globalState.get<WorkdataList>("workLoadData");
@@ -49,9 +55,18 @@ export class TimeTracker {
     });
   }
 
+  private updateWorkingIssue({ id, isWorking }: { id?: string; isWorking?: boolean }) {
+    this.workingIssue = {
+      id: id === undefined ? this.workingIssue.id : id,
+      isWorking: isWorking === undefined ? this.workingIssue.isWorking : isWorking,
+    };
+
+    this.statusBarManager.updateStatusBar(this.workingIssue);
+  }
+
   // 开始追踪某个issue
   public startTracking(issueId: string) {
-    this.workingIssue = { id: issueId, isWorking: true };
+    this.updateWorkingIssue({ id: issueId, isWorking: true });
     this.workLoadData[this.workingIssue.id] = getInitWorkLoad();
     this.stopInternalTracking();
     this.startInternalTracking();
@@ -59,7 +74,7 @@ export class TimeTracker {
   }
 
   public stopTracking() {
-    this.workingIssue.isWorking = false;
+    this.updateWorkingIssue({ isWorking: false });
     this.stopInternalTracking();
     this.saveState();
   }
@@ -94,7 +109,7 @@ export class TimeTracker {
     if (!this.workingIssue.id) {
       return;
     }
-    this.workingIssue.isWorking = true;
+    this.updateWorkingIssue({ isWorking: true });
     const curIssue = this.workLoadData[this.workingIssue.id];
     curIssue.lastActivity = dayjs();
     if (!this.activityTimer) {
@@ -107,6 +122,7 @@ export class TimeTracker {
 
   private saveState() {
     this.context.globalState.update("workLoadData", this.workLoadData);
+    this.context.globalState.update("workingIssue", this.workingIssue);
   }
 
   public getworkdata(): WorkdataList {

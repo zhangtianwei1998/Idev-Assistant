@@ -164,6 +164,7 @@ class IssueItem extends HTMLElement {
 
     const startButton = this.shadowRoot.querySelector(".startwork");
     startButton.addEventListener("click", () => {
+      console.log("teststart");
       if (isWorking === "true") {
         vsCodeApi.postMessage({ command: "endwork" });
       } else {
@@ -173,9 +174,10 @@ class IssueItem extends HTMLElement {
 
     const uploadButton = this.shadowRoot.querySelector(".uploadWork");
     uploadButton.addEventListener("click", () => {
+      console.log("testupload");
       vsCodeApi.postMessage({
         command: "uploadWorkload",
-        data: { id: issueId, key: issueKey },
+        key: issueKey,
       });
     });
   }
@@ -183,11 +185,3 @@ class IssueItem extends HTMLElement {
 
 customElements.define("issue-list", IssueList);
 customElements.define("issue-item", IssueItem);
-
-containRest = 0;
-fromTime = 1741265049153;
-issueId = "8939176";
-point = 0.1736111111111111;
-toTime = 1741265055185;
-type = 1;
-userId = "TR031803";

@@ -14,9 +14,9 @@ export class IdevProvider implements vscode.WebviewViewProvider {
   public request: AxiosInstance;
   public static readonly viewType = "idev-assistant";
   private _view?: vscode.WebviewView;
-  constructor(context: vscode.ExtensionContext) {
+  constructor(context: vscode.ExtensionContext, timeTracker: TimeTracker) {
     this.context = context;
-    this.timeTracker = new TimeTracker(context, 10000);
+    this.timeTracker = timeTracker;
     this.request = axios.create({
       baseURL: basicUrl,
       timeout: 10000,
@@ -117,15 +117,15 @@ export class IdevProvider implements vscode.WebviewViewProvider {
           this.updateFrontendWorkLoad();
           this.changeWorkingIssue();
           vscode.window.showInformationMessage("工作时间统计已结束");
+          break;
         }
 
         case "uploadWorkload": {
-          this.reportWorkTime(message.data);
+          this.reportWorkTime(message.key);
+          break;
           // this.timeTracker.stopTracking();
           // this.updateFrontendWorkLoad();
           // vscode.window.showInformationMessage("工作时间统计已结束");
-        }
-        case "uploadWorkload": {
         }
       }
     });
@@ -165,7 +165,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  private async reportWorkTime({ key }: { id: number; key: string }) {
+  private async reportWorkTime(key: string) {
     try {
       const selectIssue = this.timeTracker.getworkdata()?.[key];
       if (!selectIssue) {
