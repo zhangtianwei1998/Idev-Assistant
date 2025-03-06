@@ -23,11 +23,6 @@ let dataProxy = new Proxy(webviewData, {
 window.addEventListener("message", (event) => {
   const data = event.data;
   switch (data.command) {
-    case "needLogin":
-      vsCodeApi.postMessage({
-        command: "login",
-      });
-      break;
     case "timerUpdate":
       dataProxy.workLoad = data.workloadData;
       dataProxy.workIssue = data.workIssue;
@@ -61,6 +56,7 @@ class IssueList extends HTMLElement {
     const container = document.createElement("div");
     webviewData.issueList.forEach((item) => {
       const issueElement = document.createElement("issue-item");
+      issueElement.setAttribute("issueId", item.id);
       issueElement.setAttribute("icon-id", item.iconId);
       issueElement.setAttribute("issue-key", item.key);
       issueElement.setAttribute("title", item.title);
@@ -87,6 +83,7 @@ class IssueItem extends HTMLElement {
 
   render() {
     const iconId = this.getAttribute("icon-id");
+    const issueId = this.getAttribute("issueId");
     const issueKey = this.getAttribute("issue-key");
     const title = this.getAttribute("title");
     const workload = this.getAttribute("workload");
@@ -112,8 +109,14 @@ class IssueItem extends HTMLElement {
                   .startwork {
                       width: 25px;
                       height: 25px;
-                      color:white;
                       margin-right: 5px;
+                      cursor: pointer;
+                  }
+                  .uploadWork{
+                     width: 25px;
+                      height: 25px;
+                      margin-right: 5px;
+                      cursor: pointer;
                   }
                   .branches {
                       margin-top: 10px;
@@ -144,9 +147,11 @@ class IssueItem extends HTMLElement {
                    </div>
                </div>
                 <div class="right">     
-                  <div class="header"><img class="startwork" src="${window.iconPrefix}/operation/${
+                  <div class="header">
+                  <img class="startwork" src="${window.iconPrefix}/operation/${
       isWorking === "true" ? "pause" : "start"
     }.svg"></img>
+                    <img class="uploadWork" src="${window.iconPrefix}/operation/upload.svg"></img>
                   </div>
                   <div class="${
                     isCurrentIssue === "true" ? "greenText" : "whiteText"
@@ -157,16 +162,32 @@ class IssueItem extends HTMLElement {
 
     this.shadowRoot.appendChild(template.content.cloneNode(true));
 
-    const button = this.shadowRoot.querySelector(".startwork");
-    button.addEventListener("click", () => {
+    const startButton = this.shadowRoot.querySelector(".startwork");
+    startButton.addEventListener("click", () => {
       if (isWorking === "true") {
         vsCodeApi.postMessage({ command: "endwork" });
       } else {
         vsCodeApi.postMessage({ command: "startwork", issueKey: issueKey });
       }
     });
+
+    const uploadButton = this.shadowRoot.querySelector(".uploadWork");
+    uploadButton.addEventListener("click", () => {
+      vsCodeApi.postMessage({
+        command: "uploadWorkload",
+        data: { id: issueId, key: issueKey },
+      });
+    });
   }
 }
 
 customElements.define("issue-list", IssueList);
 customElements.define("issue-item", IssueItem);
+
+containRest = 0;
+fromTime = 1741265049153;
+issueId = "8939176";
+point = 0.1736111111111111;
+toTime = 1741265055185;
+type = 1;
+userId = "TR031803";

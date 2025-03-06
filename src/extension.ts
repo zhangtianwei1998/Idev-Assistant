@@ -17,7 +17,7 @@ export function activate(context: ExtensionContext) {
           const token = extractTokenFromUri(uri);
           if (token) {
             context.globalState.update("idevToken", token);
-            provider.postdata();
+            provider.getBasicData();
           }
         }
       },

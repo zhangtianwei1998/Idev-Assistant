@@ -16,11 +16,11 @@ type WorkingIssueData = {
   isWorking: boolean;
 };
 
-const initWorkLoad = {
+const getInitWorkLoad = () => ({
   startTimestamp: dayjs(),
   totalDuration: 0,
   lastActivity: dayjs(),
-};
+});
 
 export class TimeTracker {
   private workingIssue: WorkingIssueData = { id: "", isWorking: false };
@@ -52,7 +52,7 @@ export class TimeTracker {
   // 开始追踪某个issue
   public startTracking(issueId: string) {
     this.workingIssue = { id: issueId, isWorking: true };
-    this.workLoadData[this.workingIssue.id] = { ...initWorkLoad };
+    this.workLoadData[this.workingIssue.id] = getInitWorkLoad();
     this.stopInternalTracking();
     this.startInternalTracking();
     this.saveState();
@@ -67,9 +67,8 @@ export class TimeTracker {
   private updateduration() {
     const curIssue = this.workLoadData[this.workingIssue.id];
     const idleTime = dayjs().diff(curIssue.lastActivity);
-
     if (idleTime < this.idleThreshold) {
-      curIssue.totalDuration += 2000;
+      curIssue.totalDuration += 1000;
     } else {
       this.stopTracking();
     }
@@ -80,7 +79,7 @@ export class TimeTracker {
     if (!this.activityTimer) {
       this.activityTimer = setInterval(() => {
         this.updateduration();
-      }, 2000);
+      }, 1000);
     }
   }
 
@@ -101,15 +100,16 @@ export class TimeTracker {
     if (!this.activityTimer) {
       this.activityTimer = setInterval(() => {
         this.updateduration();
-      }, 2000);
+      }, 1000);
     }
     this.saveState();
   }
+
   private saveState() {
     this.context.globalState.update("workLoadData", this.workLoadData);
   }
 
-  public get workdata(): WorkdataList {
+  public getworkdata(): WorkdataList {
     return this.workLoadData;
   }
 
@@ -125,7 +125,11 @@ export class TimeTracker {
     return data;
   }
 
-  public clearWorkData() {
-    this.workLoadData = {};
+  public clearWorkData(issueKey?: string) {
+    if (issueKey) {
+      delete this.workLoadData[issueKey];
+    } else {
+      this.workLoadData = {};
+    }
   }
 }

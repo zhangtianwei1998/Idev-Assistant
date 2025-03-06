@@ -2,19 +2,44 @@ import * as vscode from "vscode";
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vscode";
 import { getUri } from "../utilities/getUri";
 import { getNonce } from "../utilities/getNonce";
-import axios from "axios";
-import { issueParmas } from "../constant";
+import axios, { AxiosInstance } from "axios";
+import { basicUrl, issueParmas, loginUrl } from "../constant";
 import { exec } from "child_process";
 import { TimeTracker } from "../workload/TimeTracker";
+import { UserInfo } from "../types/backendType";
 
 export class IdevProvider implements vscode.WebviewViewProvider {
   private context: vscode.ExtensionContext;
   private timeTracker: TimeTracker;
+  public request: AxiosInstance;
   public static readonly viewType = "idev-assistant";
   private _view?: vscode.WebviewView;
   constructor(context: vscode.ExtensionContext) {
     this.context = context;
     this.timeTracker = new TimeTracker(context, 10000);
+    this.request = axios.create({
+      baseURL: basicUrl,
+      timeout: 10000,
+    });
+    this.request.interceptors.request.use((config) => {
+      const token = this.context.globalState.get("idevToken");
+      if (token) {
+        config.headers = config.headers || {};
+        config.headers.userToken = token;
+      }
+      return config;
+    });
+    this.request.interceptors.response.use((response) => {
+      if (response.status === 200 && response.data.code === 401) {
+        // vscode.window.showErrorMessage("登录已过期，请重新登录");
+        this.context.globalState.update("idevToken", undefined);
+        this.context.globalState.update("userInfo", undefined);
+        this.context.globalState.update("issueList", undefined);
+        vscode.env.openExternal(vscode.Uri.parse(loginUrl));
+        return Promise.reject(response);
+      }
+      return response;
+    });
   }
 
   private _getWebviewContent(webview: Webview, extensionUri: Uri) {
@@ -56,24 +81,12 @@ export class IdevProvider implements vscode.WebviewViewProvider {
       this.context.extensionUri
     );
 
-    const token = this.context.globalState.get("idevToken");
-
     const pushWorkloadtimer = setInterval(() => {
       this.updateFrontendWorkLoad();
-    }, 2000);
+    }, 1000);
 
     webviewView.webview.onDidReceiveMessage(async (message) => {
       switch (message.command) {
-        case "login": {
-          if (!token) {
-            // Open browser for login
-            vscode.env.openExternal(
-              vscode.Uri.parse("http://sharklocal.ctripcorp.com:5173/vscodeExtension")
-            );
-          } else {
-            vscode.window.showInformationMessage("Already logged in!");
-          }
-        }
         case "linkBranch": {
           const workspaceFolders = vscode.workspace.workspaceFolders;
           if (workspaceFolders === undefined) {
@@ -104,91 +117,90 @@ export class IdevProvider implements vscode.WebviewViewProvider {
           this.updateFrontendWorkLoad();
           this.changeWorkingIssue();
           vscode.window.showInformationMessage("工作时间统计已结束");
-          //结束计时
+        }
+
+        case "uploadWorkload": {
+          this.reportWorkTime(message.data);
+          // this.timeTracker.stopTracking();
+          // this.updateFrontendWorkLoad();
+          // vscode.window.showInformationMessage("工作时间统计已结束");
+        }
+        case "uploadWorkload": {
         }
       }
     });
 
     webviewView.onDidChangeVisibility(() => {
       if (webviewView.visible) {
-        this.postdata();
+        this.getBasicData();
       }
     });
 
     if (webviewView.visible) {
-      this.postdata();
+      this.getBasicData();
     }
   }
 
-  public async postdata() {
+  public async getBasicData() {
     if (!this._view) {
       return;
     }
-    const idevtoken = this.context.globalState.get("idevToken");
-    const userInfo = this.context.globalState.get("userInfo");
-    const issueList = this.context.globalState.get("issueList");
     try {
-      if (idevtoken && userInfo && issueList) {
-        this._view.webview.postMessage({ command: "userInfo", data: userInfo });
-        this._view.webview.postMessage({ command: "issueList", data: issueList });
-      } else {
-        if (idevtoken) {
-          const request = axios.create({
-            baseURL: "https://idev2-00.fat6.qa.nt.ctripcorp.com/api/",
-            headers: {
-              userToken: idevtoken as string,
-            },
-            timeout: 10000, // 设置请求超时时间（可选）
-          });
+      const { data: userInfo } = await this.request.get("userinfo/userObj");
+      const { data: issueList } = await this.request.post("issuefilter/view", issueParmas);
 
-          const [{ data: userInfo }, { data: issueList }] = await Promise.all([
-            request.get("userinfo/userObj"),
-            request.post("issuefilter/view", issueParmas),
-          ]);
-          const issueListData = issueList.data.records.map((item: any) => ({
-            iconId: item.issueType.iconId,
-            key: item.issueKey,
-            title: item.title,
-            branchList: ["feature/123", "feature/456"],
-          }));
+      const issueListData = issueList.data.records.map((item: any) => ({
+        iconId: item.issueType.iconId,
+        key: item.issueKey,
+        title: item.title,
+        id: item.issueId,
+      }));
 
-          this.context.globalState.update("userInfo", userInfo.data);
-          this.context.globalState.update("issueList", issueListData);
-          this._view.webview.postMessage({ command: "userInfo", data: userInfo.data });
-          this._view.webview.postMessage({ command: "issueList", data: issueListData });
-        } else {
-          this.context.globalState.update("userInfo", undefined);
-          this.context.globalState.update("issueList", undefined);
-          this._view.webview.postMessage({ command: "needLogin" });
-        }
-      }
-    } catch (e) {
-      console.log("e", e);
+      this.context.globalState.update("userInfo", userInfo.data);
+      this.context.globalState.update("issueList", issueListData);
+      this._view.webview.postMessage({ command: "userInfo", data: userInfo.data });
+      this._view.webview.postMessage({ command: "issueList", data: issueListData });
+    } catch (error) {
+      console.error("获取数据失败", error);
     }
   }
 
-  private async reportWorkTime(duration: number) {
+  private async reportWorkTime({ key }: { id: number; key: string }) {
     try {
-      const token = this.context.globalState.get("idevToken");
-      if (!token) {
-        throw new Error("未登录");
+      const selectIssue = this.timeTracker.getworkdata()?.[key];
+      if (!selectIssue) {
+        vscode.window.showInformationMessage("该Issue上未登记工时");
+        return;
       }
-
-      // 示例上报逻辑（需根据实际API调整）
-      const response = await axios.post(
-        "https://idev2-00.fat6.qa.nt.ctripcorp.com/api/worklogs",
-        {
-          duration: duration,
-          timestamp: Date.now(),
-        },
-        {
-          headers: {
-            userToken: token as string,
-          },
-        }
-      );
-
-      if (response.status === 200) {
+      const curworkIssue = this.timeTracker.getworkingIssue();
+      if (curworkIssue.id === key && curworkIssue.isWorking) {
+        this.timeTracker.stopTracking();
+        this.updateFrontendWorkLoad();
+        vscode.window.showInformationMessage("工作时间统计已结束");
+      }
+      const { startTimestamp, totalDuration, lastActivity } = selectIssue;
+      console.log("teststarttimestamp");
+      const userId = (this.context.globalState.get("userInfo") as UserInfo).id;
+      console.log("testdata", {
+        issueKey: key,
+        point: totalDuration / (24 * 3600),
+        userId: userId,
+        fromTime: startTimestamp.valueOf(),
+        toTime: lastActivity.valueOf(),
+        type: 1,
+      });
+      const response = await this.request.post("/issuePoint/add", {
+        issueKey: key,
+        point: totalDuration / (24 * 3600),
+        userId: userId,
+        fromTime: startTimestamp.valueOf(),
+        toTime: lastActivity.valueOf(),
+        type: 1,
+        containRest: 0,
+      });
+      console.log("testresponse", response);
+      if (response.status === 200 && response.data.code === 200) {
+        this.timeTracker.clearWorkData(key);
         vscode.window.showInformationMessage("工时上报成功");
       }
     } catch (error: any) {
