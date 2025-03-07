@@ -12,7 +12,6 @@ import { IssueData } from "./types/frontendtype";
 export function activate(context: ExtensionContext) {
   const statusBarManager = new StatusBarManager(context);
   const timeTracker = new TimeTracker(context, statusBarManager, 10000);
-
   const idevProvider = new IdevProvider(context, timeTracker);
 
   context.subscriptions.push(
@@ -53,8 +52,6 @@ export function activate(context: ExtensionContext) {
       },
     })
   );
-
-  const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
 
   let tokendisposable = vscode.commands.registerCommand("extension.idevLogout", function () {
     // 清除 idevToken

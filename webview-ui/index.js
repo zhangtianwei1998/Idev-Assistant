@@ -164,7 +164,6 @@ class IssueItem extends HTMLElement {
 
     const startButton = this.shadowRoot.querySelector(".startwork");
     startButton.addEventListener("click", () => {
-      console.log("teststart");
       if (isWorking === "true") {
         vsCodeApi.postMessage({ command: "endwork" });
       } else {
@@ -174,7 +173,6 @@ class IssueItem extends HTMLElement {
 
     const uploadButton = this.shadowRoot.querySelector(".uploadWork");
     uploadButton.addEventListener("click", () => {
-      console.log("testupload");
       vsCodeApi.postMessage({
         command: "uploadWorkload",
         key: issueKey,

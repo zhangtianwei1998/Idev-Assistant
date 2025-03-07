@@ -38,8 +38,6 @@ export class GitBranchWatcher {
       this.git = gitExtension.exports.getAPI(1);
       this.setupRepositoryListeners();
       this.git.repositories.forEach((repo: any) => this.watchRepository(repo));
-
-      console.log("Git Branch Watcher initialized successfully");
     } catch (error) {
       console.error("Git initialization failed:", error);
       this.scheduleRetry(retryCount);

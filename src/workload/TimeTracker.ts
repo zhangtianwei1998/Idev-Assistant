@@ -71,7 +71,10 @@ export class TimeTracker {
       return;
     }
     this.updateWorkingIssue({ id: issueId, isWorking: true });
-    this.workLoadData[this.workingIssue.id] = getInitWorkLoad();
+
+    this.workLoadData[this.workingIssue.id] = this.workLoadData[this.workingIssue.id]
+      ? { ...this.workLoadData[this.workingIssue.id], lastActivity: dayjs() }
+      : getInitWorkLoad();
     this.stopInternalTracking();
     this.startInternalTracking();
     this.saveState();

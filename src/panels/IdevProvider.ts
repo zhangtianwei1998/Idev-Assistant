@@ -98,14 +98,12 @@ export class IdevProvider implements vscode.WebviewViewProvider {
       case "startwork": {
         this.timeTracker.startTracking(message.issueKey);
         this.updateFrontendWorkLoad();
-        this.changeWorkingIssue();
         vscode.window.showInformationMessage("工作时间统计已开始");
         break;
       }
       case "endwork": {
         this.timeTracker.stopTracking();
         this.updateFrontendWorkLoad();
-        this.changeWorkingIssue();
         vscode.window.showInformationMessage("工作时间统计已结束");
         break;
       }
@@ -189,16 +187,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
         vscode.window.showInformationMessage("工作时间统计已结束");
       }
       const { startTimestamp, totalDuration, lastActivity } = selectIssue;
-      console.log("teststarttimestamp");
       const userId = (this.context.globalState.get("userInfo") as UserInfo).id;
-      console.log("testdata", {
-        issueKey: key,
-        point: totalDuration / (24 * 3600),
-        userId: userId,
-        fromTime: startTimestamp.valueOf(),
-        toTime: lastActivity.valueOf(),
-        type: 1,
-      });
       const response = await this.request.post("/issuePoint/add", {
         issueKey: key,
         point: totalDuration / (24 * 3600),
@@ -208,7 +197,6 @@ export class IdevProvider implements vscode.WebviewViewProvider {
         type: 1,
         containRest: 0,
       });
-      console.log("testresponse", response);
       if (response.status === 200 && response.data.code === 200) {
         this.timeTracker.clearWorkData(key);
         vscode.window.showInformationMessage("工时上报成功");
@@ -222,21 +210,10 @@ export class IdevProvider implements vscode.WebviewViewProvider {
     if (!this.view) {
       return;
     }
-
-    console.log("testdata", this.timeTracker.getDurationData());
     this.view.webview.postMessage({
       command: "timerUpdate",
       workloadData: this.timeTracker.getDurationData(),
       workIssue: this.timeTracker.getworkingIssue(),
-    });
-  }
-
-  private changeWorkingIssue() {
-    if (!this.view) {
-      return;
-    }
-    this.view.webview.postMessage({
-      command: "workingIssueChange",
     });
   }
 
