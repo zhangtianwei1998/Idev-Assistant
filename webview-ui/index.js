@@ -93,48 +93,91 @@ class IssueItem extends HTMLElement {
     template.innerHTML = `
               <style>
                   .header {
+                      height:20px;
                       display:flex;
                       align-items: center;
+                      margin-bottom:5px;
                   }
-                  .middle {
-
-                  }
-                  .issue-item {
-                      border: 1px solid #ccc;
-                      padding: 10px;
-                      margin: 10px 0;
+                  .workLoadWrap{
                       display:flex;
+                      justify-content:flex-end;
+                      height:20px;
+                      margin-bottom:5px;
+                  }
+                  .icon{
+                    height:14px;
+                    width:14px;
+                    margin-right:4px;
+                  }
+
+                  .issue-item {
+                      border-radius:4px;
+                      border: 2px solid grey;
+                      padding: 4px 8px;
+                      margin: 10px 0;
+                      display:grid;
+                      grid-template-columns:1fr auto;
                       justify-content:space-between;
+                      overflow:hidden;
+                  }
+                  .curIssue {
+                     border-radius:4px;
+                      border: 2px solid green;
+                      padding: 4px 8px;
+                      margin: 10px 0;
+                      display:grid;
+                      grid-template-columns:1fr auto;
+                      justify-content:space-between;
+                      overflow:hidden;
                   }
                   .startwork {
-                      width: 25px;
-                      height: 25px;
-                      margin-right: 5px;
+                      width: 20px;
+                      height: 20px;
+                      margin-right: 16px;
                       cursor: pointer;
                   }
                   .uploadWork{
-                     width: 25px;
-                      height: 25px;
-                      margin-right: 5px;
+                     width: 20px;
+                      height: 20px;
+                      margin-right: 2px;
                       cursor: pointer;
+
                   }
                   .branches {
                       margin-top: 10px;
                   }
                   .title {
                       font-weight: bold;
-                      margin-bottom: 5px;
+                      text-overflow: ellipsis;
+                      white-space: nowrap;
+                      width:100%;
+                      overflow:hidden;
                   }
+                   .key{
+                      font-weight: bold;
+                      text-overflow: ellipsis;
+                      white-space: nowrap;
+                   }
                   .right{
                           display: flex;
                           flex-direction: column;
                           align-items: flex-end;
-                      }
+                    }
                   .greenText{
                         color:green;
+                        margin-top:2px;
                   }
+                        .whiteText{
+                          margin-top:2px;
+                        }
+                  .left{
+                      overflow:hidden;  
+              
+                  }
+                      
+
               </style>
-              <div class="issue-item">
+              <div class=${isCurrentIssue === "true" ? "curIssue" : "issue-item"} >
                <div class="left">
                   <div class="header">
                     <img class="icon" src="${window.iconPrefix}/issueType/${getIconId(
@@ -142,12 +185,10 @@ class IssueItem extends HTMLElement {
     )}.svg"  id="${iconId}"></img>
                     <div class="key"> ${issueKey}</div>
                   </div>
-                  <div class="middle"> 
                     <div class="title">${title}</div>
-                   </div>
                </div>
                 <div class="right">     
-                  <div class="header">
+                  <div class="workLoadWrap">
                   <img class="startwork" src="${window.iconPrefix}/operation/${
       isWorking === "true" ? "pause" : "start"
     }.svg"></img>

@@ -190,7 +190,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
       const userId = (this.context.globalState.get("userInfo") as UserInfo).id;
       const response = await this.request.post("/issuePoint/add", {
         issueKey: key,
-        point: totalDuration / (24 * 3600),
+        point: totalDuration / (24 * 3600 * 1000),
         userId: userId,
         fromTime: startTimestamp.valueOf(),
         toTime: lastActivity.valueOf(),

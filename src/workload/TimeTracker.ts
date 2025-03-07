@@ -66,7 +66,7 @@ export class TimeTracker {
   // 开始追踪某个issue
   public startTracking(issueId: string) {
     //分支匹配上正在工作的issue，相当与激活一次
-    if (issueId === this.workingIssue.id) {
+    if (issueId === this.workingIssue.id && this.workLoadData[this.workingIssue.id]) {
       this.recordActivity();
       return;
     }
@@ -115,6 +115,10 @@ export class TimeTracker {
   private recordActivity() {
     if (!this.workingIssue.id) {
       return;
+    }
+    //上报完直接再激活
+    if (!this.workLoadData[this.workingIssue.id]) {
+      this.workLoadData[this.workingIssue.id] = getInitWorkLoad();
     }
     this.updateWorkingIssue({ isWorking: true });
     const curIssue = this.workLoadData[this.workingIssue.id];
