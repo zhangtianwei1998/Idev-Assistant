@@ -13,7 +13,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
   private timeTracker: TimeTracker;
   public request: AxiosInstance;
   public static readonly viewType = "idev-assistant";
-  private _view?: vscode.WebviewView;
+  private view?: vscode.WebviewView;
   constructor(context: vscode.ExtensionContext, timeTracker: TimeTracker) {
     this.context = context;
     this.timeTracker = timeTracker;
@@ -42,7 +42,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
     });
   }
 
-  private _getWebviewContent(webview: Webview, extensionUri: Uri) {
+  private getWebviewContent(webview: Webview, extensionUri: Uri) {
     const scriptUri = getUri(webview, extensionUri, ["webview-ui", "index.js"]);
     const iconUriPrefix = getUri(webview, extensionUri, ["webview-ui", "assets"]);
 
@@ -68,67 +68,77 @@ export class IdevProvider implements vscode.WebviewViewProvider {
 			</html>`;
   }
 
-  async resolveWebviewView(webviewView: vscode.WebviewView): Promise<void> {
-    this._view = webviewView;
+  public refresh() {
+    if (this.view) {
+      this.view.webview.html = this.getWebviewContent(this.view.webview, this.context.extensionUri);
+      this.getBasicData();
+      this.view.webview.onDidReceiveMessage(this.handleMessage.bind(this));
+    }
+  }
+
+  private async handleMessage(message: any) {
+    switch (message.command) {
+      case "linkBranch": {
+        const workspaceFolders = vscode.workspace.workspaceFolders;
+        if (workspaceFolders === undefined) {
+          vscode.window.showErrorMessage("Failed to get branch name.");
+          return;
+        }
+        const workspacePath = workspaceFolders[0].uri.fsPath;
+        exec("git rev-parse --abbrev-ref HEAD", { cwd: workspacePath }, (err, stdout, stderr) => {
+          if (err) {
+            vscode.window.showErrorMessage("Failed to get branch name.");
+            console.error(stderr);
+            return;
+          }
+          const branchName = stdout.trim();
+          vscode.window.showInformationMessage(`${branchName} link success`);
+        });
+      }
+      case "startwork": {
+        this.timeTracker.startTracking(message.issueKey);
+        this.updateFrontendWorkLoad();
+        this.changeWorkingIssue();
+        vscode.window.showInformationMessage("工作时间统计已开始");
+        break;
+      }
+      case "endwork": {
+        this.timeTracker.stopTracking();
+        this.updateFrontendWorkLoad();
+        this.changeWorkingIssue();
+        vscode.window.showInformationMessage("工作时间统计已结束");
+        break;
+      }
+
+      case "uploadWorkload": {
+        this.reportWorkTime(message.key);
+        break;
+        // this.timeTracker.stopTracking();
+        // this.updateFrontendWorkLoad();
+        // vscode.window.showInformationMessage("工作时间统计已结束");
+      }
+    }
+  }
+
+  public async resolveWebviewView(webviewView: vscode.WebviewView): Promise<void> {
+    this.view = webviewView;
 
     webviewView.webview.options = {
       enableScripts: true,
       localResourceRoots: [this.context.extensionUri],
     };
 
-    webviewView.webview.html = this._getWebviewContent(
-      webviewView.webview,
-      this.context.extensionUri
-    );
+    this.refresh();
+    // webviewView.webview.html = this.getWebviewContent(
+    //   webviewView.webview,
+    //   this.context.extensionUri
+    // );
 
     const pushWorkloadtimer = setInterval(() => {
       this.updateFrontendWorkLoad();
     }, 1000);
 
-    webviewView.webview.onDidReceiveMessage(async (message) => {
-      switch (message.command) {
-        case "linkBranch": {
-          const workspaceFolders = vscode.workspace.workspaceFolders;
-          if (workspaceFolders === undefined) {
-            vscode.window.showErrorMessage("Failed to get branch name.");
-            return;
-          }
-          const workspacePath = workspaceFolders[0].uri.fsPath;
-          exec("git rev-parse --abbrev-ref HEAD", { cwd: workspacePath }, (err, stdout, stderr) => {
-            if (err) {
-              vscode.window.showErrorMessage("Failed to get branch name.");
-              console.error(stderr);
-              return;
-            }
-
-            const branchName = stdout.trim();
-            vscode.window.showInformationMessage(`${branchName} link success`);
-          });
-        }
-        case "startwork": {
-          this.timeTracker.startTracking(message.issueKey);
-          this.updateFrontendWorkLoad();
-          this.changeWorkingIssue();
-          vscode.window.showInformationMessage("工作时间统计已开始");
-          break;
-        }
-        case "endwork": {
-          this.timeTracker.stopTracking();
-          this.updateFrontendWorkLoad();
-          this.changeWorkingIssue();
-          vscode.window.showInformationMessage("工作时间统计已结束");
-          break;
-        }
-
-        case "uploadWorkload": {
-          this.reportWorkTime(message.key);
-          break;
-          // this.timeTracker.stopTracking();
-          // this.updateFrontendWorkLoad();
-          // vscode.window.showInformationMessage("工作时间统计已结束");
-        }
-      }
-    });
+    webviewView.webview.onDidReceiveMessage(this.handleMessage.bind(this));
 
     webviewView.onDidChangeVisibility(() => {
       if (webviewView.visible) {
@@ -142,7 +152,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
   }
 
   public async getBasicData() {
-    if (!this._view) {
+    if (!this.view) {
       return;
     }
     try {
@@ -158,8 +168,8 @@ export class IdevProvider implements vscode.WebviewViewProvider {
 
       this.context.globalState.update("userInfo", userInfo.data);
       this.context.globalState.update("issueList", issueListData);
-      this._view.webview.postMessage({ command: "userInfo", data: userInfo.data });
-      this._view.webview.postMessage({ command: "issueList", data: issueListData });
+      this.view.webview.postMessage({ command: "userInfo", data: userInfo.data });
+      this.view.webview.postMessage({ command: "issueList", data: issueListData });
     } catch (error) {
       console.error("获取数据失败", error);
     }
@@ -208,11 +218,13 @@ export class IdevProvider implements vscode.WebviewViewProvider {
     }
   }
 
-  private updateFrontendWorkLoad() {
-    if (!this._view) {
+  public updateFrontendWorkLoad() {
+    if (!this.view) {
       return;
     }
-    this._view.webview.postMessage({
+
+    console.log("testdata", this.timeTracker.getDurationData());
+    this.view.webview.postMessage({
       command: "timerUpdate",
       workloadData: this.timeTracker.getDurationData(),
       workIssue: this.timeTracker.getworkingIssue(),
@@ -220,10 +232,10 @@ export class IdevProvider implements vscode.WebviewViewProvider {
   }
 
   private changeWorkingIssue() {
-    if (!this._view) {
+    if (!this.view) {
       return;
     }
-    this._view.webview.postMessage({
+    this.view.webview.postMessage({
       command: "workingIssueChange",
     });
   }

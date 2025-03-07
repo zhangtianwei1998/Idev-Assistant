@@ -17,8 +17,22 @@
       {
         "command": "extension.clearWorkload",
         "title": "清除idev工作量数据"
+      },
+      {
+        "command": "idev.refresh",
+        "title": "刷新视图",
+        "icon": "$(refresh)"
       }
     ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "idev.refresh",
+          "when": "view == idev-assistant",
+          "group": "navigation"
+        }
+      ]
+    },
     "viewsContainers": {
       "activitybar": [
         {

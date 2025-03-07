@@ -10,7 +10,7 @@ type TrackingState = {
   lastActivity: dayjs.Dayjs;
 };
 
-type WorkdataList = Record<string, TrackingState>;
+export type WorkdataType = Record<string, TrackingState>;
 
 export type WorkingIssueData = {
   id: string;
@@ -25,7 +25,7 @@ const getInitWorkLoad = () => ({
 
 export class TimeTracker {
   private workingIssue: WorkingIssueData = { id: "", isWorking: false };
-  private workLoadData: WorkdataList = {};
+  private workLoadData: WorkdataType = {};
   private statusBarManager: StatusBarManager;
   private readonly idleThreshold: number;
   private activityTimer?: NodeJS.Timeout;
@@ -43,7 +43,7 @@ export class TimeTracker {
       id: "",
       isWorking: false,
     };
-    this.workLoadData = context.globalState.get<WorkdataList>("workLoadData") || {};
+    this.workLoadData = context.globalState.get<WorkdataType>("workLoadData") || {};
 
     // 注册活动检测
     vscode.workspace.onDidChangeTextDocument(() => this.recordActivity());
@@ -65,6 +65,11 @@ export class TimeTracker {
 
   // 开始追踪某个issue
   public startTracking(issueId: string) {
+    //分支匹配上正在工作的issue，相当与激活一次
+    if (issueId === this.workingIssue.id) {
+      this.recordActivity();
+      return;
+    }
     this.updateWorkingIssue({ id: issueId, isWorking: true });
     this.workLoadData[this.workingIssue.id] = getInitWorkLoad();
     this.stopInternalTracking();
@@ -124,7 +129,7 @@ export class TimeTracker {
     this.context.globalState.update("workingIssue", this.workingIssue);
   }
 
-  public getworkdata(): WorkdataList {
+  public getworkdata(): WorkdataType {
     return this.workLoadData;
   }
 
@@ -144,7 +149,9 @@ export class TimeTracker {
     if (issueKey) {
       delete this.workLoadData[issueKey];
     } else {
+      this.workingIssue = { id: "", isWorking: false };
       this.workLoadData = {};
     }
+    this.saveState();
   }
 }
