@@ -14,6 +14,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
   public request: AxiosInstance;
   public static readonly viewType = "idev-assistant";
   private view?: vscode.WebviewView;
+  private disposables: vscode.Disposable[] = [];
   constructor(context: vscode.ExtensionContext, timeTracker: TimeTracker) {
     this.context = context;
     this.timeTracker = timeTracker;
@@ -131,10 +132,19 @@ export class IdevProvider implements vscode.WebviewViewProvider {
     //   webviewView.webview,
     //   this.context.extensionUri
     // );
+    this.updateFrontendWorkLoad();
 
-    const pushWorkloadtimer = setInterval(() => {
-      this.updateFrontendWorkLoad();
-    }, 1000);
+    this.timeTracker.addFallback(() => this.updateFrontendWorkLoad());
+
+    // const pushWorkloadtimer = setInterval(() => {
+    //   this.updateFrontendWorkLoad();
+    // }, 10000);
+
+    // this.disposables.push({
+    //   dispose: () => {
+    //     clearInterval(pushWorkloadtimer);
+    //   },
+    // });
 
     webviewView.webview.onDidReceiveMessage(this.handleMessage.bind(this));
 
@@ -183,8 +193,6 @@ export class IdevProvider implements vscode.WebviewViewProvider {
       const curworkIssue = this.timeTracker.getworkingIssue();
       if (curworkIssue.id === key && curworkIssue.isWorking) {
         this.timeTracker.stopTracking();
-        this.updateFrontendWorkLoad();
-        vscode.window.showInformationMessage("工作时间统计已结束");
       }
       const { startTimestamp, totalDuration, lastActivity } = selectIssue;
       const userId = (this.context.globalState.get("userInfo") as UserInfo).id;
@@ -199,6 +207,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
       });
       if (response.status === 200 && response.data.code === 200) {
         this.timeTracker.clearWorkData(key);
+        this.updateFrontendWorkLoad();
         vscode.window.showInformationMessage("工时上报成功");
       }
     } catch (error: any) {
@@ -216,11 +225,8 @@ export class IdevProvider implements vscode.WebviewViewProvider {
       workIssue: this.timeTracker.getworkingIssue(),
     });
   }
-
-  // 添加定时状态更新
-  private startStatusUpdates() {
-    setInterval(() => {
-      this.updateFrontendWorkLoad();
-    }, 1000);
+  public dispose() {
+    this.disposables.forEach((d) => d.dispose());
+    this.disposables = [];
   }
 }

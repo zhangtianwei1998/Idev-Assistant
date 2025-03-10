@@ -48,7 +48,7 @@ export class GitBranchWatcher {
     if (retryCount < 5) {
       this.retryTimer = setTimeout(() => {
         this.initializeWithRetry(retryCount + 1);
-      }, 3000 * (retryCount + 1)); // 指数退避重试
+      }, 3000 * (retryCount + 1));
     }
   }
 

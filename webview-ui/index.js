@@ -164,10 +164,20 @@ class IssueItem extends HTMLElement {
                           align-items: flex-end;
                     }
                   .greenText{
+                        width:100%;
+                        display:flex;
+                        justify-content:center;
+                        font-size:14px;
+                        font-weight: bold;
                         color:green;
                         margin-top:2px;
                   }
                         .whiteText{
+                        width:100%;
+                         display:flex;
+                         justify-content:center;
+                          font-size:14px;
+                          font-weight: bold;
                           margin-top:2px;
                         }
                   .left{

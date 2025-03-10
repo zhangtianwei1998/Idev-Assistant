@@ -11,14 +11,16 @@ import { IssueData } from "./types/frontendtype";
 
 export function activate(context: ExtensionContext) {
   const statusBarManager = new StatusBarManager(context);
-  const timeTracker = new TimeTracker(context, statusBarManager, 10000);
+  const timeTracker = new TimeTracker(context, statusBarManager, 30000);
   const idevProvider = new IdevProvider(context, timeTracker);
 
   context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(IdevProvider.viewType, idevProvider)
-  );
-
-  context.subscriptions.push(
+    statusBarManager,
+    timeTracker,
+    idevProvider,
+    vscode.window.registerWebviewViewProvider(IdevProvider.viewType, idevProvider, {
+      webviewOptions: { retainContextWhenHidden: true },
+    }),
     vscode.commands.registerCommand("idev.refresh", () => {
       idevProvider.refresh();
     })
@@ -70,4 +72,23 @@ export function activate(context: ExtensionContext) {
   });
 
   context.subscriptions.push(workloadDisposable);
+
+  // let swithcDisposable = vscode.commands.registerCommand("extension.setWorkloadMode", async () => {
+  //   const modes = [
+  //     { label: "精确模式", value: "exact" },
+  //     { label: "模糊模式", value: "fuzzy" },
+  //   ];
+
+  //   const selected = await vscode.window.showQuickPick(modes, {
+  //     placeHolder: "请选择工作模式",
+  //     ignoreFocusOut: true,
+  //   });
+
+  //   if (selected) {
+  //     await context.globalState.update("workloadMode", selected.value);
+  //     vscode.window.showInformationMessage(`工时统计模式已切换至${selected.label}`);
+  //   }
+  // });
+
+  // context.subscriptions.push(swithcDisposable);
 }
