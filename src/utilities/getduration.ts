@@ -1,9 +1,6 @@
-import * as duration from "dayjs/plugin/duration";
-import * as dayjs from "dayjs";
-
-dayjs.extend(duration);
-
-export function getDurationString(time: number): string {
-  const total = dayjs.duration(time);
-  return `${total.hours()}h ${total.minutes()}m`;
+export function getDurationString(ms: number): string {
+  const hours = Math.floor(ms / 3600000);
+  const remainingMs = ms % 3600000;
+  const minutes = Math.floor(remainingMs / 60000);
+  return `${hours}小时${minutes}分钟`;
 }
