@@ -99,13 +99,13 @@ export class IdevProvider implements vscode.WebviewViewProvider {
       case "startwork": {
         this.timeTracker.startTracking(message.issueKey);
         this.updateFrontendWorkLoad();
-        vscode.window.showInformationMessage("工作时间统计已开始");
+        vscode.window.showInformationMessage(`${message.issueKey} 工时统计开始`);
         break;
       }
       case "endwork": {
         this.timeTracker.stopTracking();
         this.updateFrontendWorkLoad();
-        vscode.window.showInformationMessage("工作时间统计已结束");
+        vscode.window.showInformationMessage(`${message.issueKey} 工时统计暂停`);
         break;
       }
 
@@ -150,13 +150,12 @@ export class IdevProvider implements vscode.WebviewViewProvider {
 
     webviewView.onDidChangeVisibility(() => {
       if (webviewView.visible) {
-        this.getBasicData();
+        const token = this.context.globalState.get("idevToken");
+        if (!token) {
+          this.refresh();
+        }
       }
     });
-
-    if (webviewView.visible) {
-      this.getBasicData();
-    }
   }
 
   public async getBasicData() {
@@ -187,7 +186,11 @@ export class IdevProvider implements vscode.WebviewViewProvider {
     try {
       const selectIssue = this.timeTracker.getworkdata()?.[key];
       if (!selectIssue) {
-        vscode.window.showInformationMessage("该Issue上未登记工时");
+        vscode.window.showInformationMessage(`Issue ${key} 上未登记工时`);
+        return;
+      }
+      if (selectIssue?.totalDuration && selectIssue?.totalDuration / (24 * 3600 * 1000) < 0.001) {
+        vscode.window.showInformationMessage(`Issue ${key} 上登记工时小于0.001人天  无法登记`);
         return;
       }
       const curworkIssue = this.timeTracker.getworkingIssue();
@@ -208,7 +211,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
       if (response.status === 200 && response.data.code === 200) {
         this.timeTracker.clearWorkData(key);
         this.updateFrontendWorkLoad();
-        vscode.window.showInformationMessage("工时上报成功");
+        vscode.window.showInformationMessage(`Issue ${key} 工时上报成功`);
       }
     } catch (error: any) {
       vscode.window.showErrorMessage(`上报失败: ${error.message}`);

@@ -2,12 +2,13 @@
   "name": "idev-assistant",
   "displayName": "Idev Assistant",
   "publisher": "GG-bond-ZTW",
-  "description": "A hello world sample extension to demonstrate using React + Vite with the Webview UI Toolkit for VS Code.",
-  "version": "0.0.1",
+  "description": "A vscode extension for the requirements management tool Idev2, that helps users automatically count coding time by issue",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.75.0"
   },
   "main": "./out/extension.js",
+  "icon": "assets/Idevlogo.png",
   "activationEvents": [
     "onStartupFinished"
   ],

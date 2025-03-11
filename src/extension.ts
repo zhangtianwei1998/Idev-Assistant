@@ -57,8 +57,8 @@ export function activate(context: ExtensionContext) {
 
   let tokendisposable = vscode.commands.registerCommand("extension.idevLogout", function () {
     // 清除 idevToken
-    timeTracker.clearWorkData();
     context.globalState.update("idevToken", undefined);
+    timeTracker.clearWorkData();
     vscode.window.showInformationMessage("已退出登录");
     idevProvider.refresh();
   });
