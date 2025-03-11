@@ -1,0 +1,57 @@
+.issueRoot {
+  box-sizing: border-box;
+  width: 100%;
+  border-radius: 4px;
+  border: 2px solid #10629c;
+
+  padding: 4px 8px;
+  margin: 5px 0;
+  overflow: hidden;
+}
+
+.activateIssue {
+  border: 2px solid white;
+}
+
+.issueheader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerleft {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.headerRight {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.opButton .control {
+  padding: 4px;
+}
+
+.opiconWrap {
+  font-size: 18px;
+  margin: -1px -8px;
+}
+
+.issuetitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workTag {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  background-color: grey;
+  border-radius: 5px;
+  padding: 2px 4px;
+}

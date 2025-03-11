@@ -51,34 +51,39 @@ export class IdevProvider implements vscode.WebviewViewProvider {
   }
 
   private getWebviewContent(webview: Webview, extensionUri: Uri) {
-    const scriptUri = getUri(webview, extensionUri, ["webview-ui", "index.js"]);
-    const iconUriPrefix = getUri(webview, extensionUri, ["webview-ui", "assets"]);
+    // The CSS file from the React build output
+    const stylesUri = getUri(webview, extensionUri, ["webview-ui", "build", "assets", "index.css"]);
+    // The JS file from the React build output
+    const scriptUri = getUri(webview, extensionUri, ["webview-ui", "build", "assets", "index.js"]);
 
     const nonce = getNonce();
 
-    return `<!DOCTYPE html>
-			<html lang="en">
-			<head>
-				<meta charset="UTF-8">
-				<!--
-					Use a content security policy to only allow loading images from https or from our extension directory,
-					and only allow scripts that have a specific nonce.
-				-->
-				<meta name="viewport" content="width=device-width, initial-scale=1.0">
-				<title>Cat Coding</title>
-			</head>
-			<body>
-      <issue-list></issue-list>
-      <script>window.iconPrefix ="${iconUriPrefix}" </script>
-      <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
-
-			</body>
-			</html>`;
+    // Tip: Install the es6-string-html VS Code extension to enable code highlighting below
+    return /*html*/ `
+      <!DOCTYPE html>
+      <html lang="en">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+          <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+          <link rel="stylesheet" type="text/css" href="${stylesUri}">
+          <title>Hello World</title>
+        </head>
+        <body>
+          <div id="root"></div>
+          <script type="module" nonce="${nonce}" src="${scriptUri}"></script>
+        </body>
+      </html>
+    `;
   }
 
   public refresh() {
     if (this.view) {
       this.view.webview.html = this.getWebviewContent(this.view.webview, this.context.extensionUri);
+      console.log(
+        "testcontent",
+        this.getWebviewContent(this.view.webview, this.context.extensionUri)
+      );
       this.getBasicData();
       this.view.webview.onDidReceiveMessage(this.handleMessage.bind(this));
     }
@@ -86,23 +91,23 @@ export class IdevProvider implements vscode.WebviewViewProvider {
 
   private async handleMessage(message: any) {
     switch (message.command) {
-      case "linkBranch": {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (workspaceFolders === undefined) {
-          vscode.window.showErrorMessage("Failed to get branch name.");
-          return;
-        }
-        const workspacePath = workspaceFolders[0].uri.fsPath;
-        exec("git rev-parse --abbrev-ref HEAD", { cwd: workspacePath }, (err, stdout, stderr) => {
-          if (err) {
-            vscode.window.showErrorMessage("Failed to get branch name.");
-            console.error(stderr);
-            return;
-          }
-          const branchName = stdout.trim();
-          vscode.window.showInformationMessage(`${branchName} link success`);
-        });
-      }
+      // case "linkBranch": {
+      //   const workspaceFolders = vscode.workspace.workspaceFolders;
+      //   if (workspaceFolders === undefined) {
+      //     vscode.window.showErrorMessage("Failed to get branch name.");
+      //     return;
+      //   }
+      //   const workspacePath = workspaceFolders[0].uri.fsPath;
+      //   exec("git rev-parse --abbrev-ref HEAD", { cwd: workspacePath }, (err, stdout, stderr) => {
+      //     if (err) {
+      //       vscode.window.showErrorMessage("Failed to get branch name.");
+      //       console.error(stderr);
+      //       return;
+      //     }
+      //     const branchName = stdout.trim();
+      //     vscode.window.showInformationMessage(`${branchName} link success`);
+      //   });
+      // }
       case "startwork": {
         this.timeTracker.startTracking(message.issueKey);
         this.updateFrontendWorkLoad();

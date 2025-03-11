@@ -1,0 +1,9 @@
+.iconBox {
+  display: flex;
+}
+
+.loading {
+  background-color: rgb(148, 163, 184);
+  height: 1em;
+  width: 1em;
+}
