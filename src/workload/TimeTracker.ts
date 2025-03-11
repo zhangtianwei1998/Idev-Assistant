@@ -109,7 +109,7 @@ export class TimeTracker {
     } else {
       this.stopTracking();
     }
-    this.saveState();
+    // this.saveState();
   }
 
   private startInternalTracking() {
@@ -184,6 +184,7 @@ export class TimeTracker {
       this.workLoadData = {};
     }
     this.saveState();
+    this.statusBarManager.updateStatusBar(this.workingIssue);
   }
 
   public dispose() {

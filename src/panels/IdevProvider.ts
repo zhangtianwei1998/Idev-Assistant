@@ -1,10 +1,13 @@
 import * as vscode from "vscode";
+import * as _ from "lodash";
 import { Disposable, Webview, WebviewPanel, window, Uri, ViewColumn } from "vscode";
 import { getUri } from "../utilities/getUri";
+
 import { getNonce } from "../utilities/getNonce";
 import axios, { AxiosInstance } from "axios";
 import { basicUrl, issueParmas, loginUrl } from "../constant";
 import { exec } from "child_process";
+
 import { TimeTracker } from "../workload/TimeTracker";
 import { UserInfo } from "../types/backendType";
 
@@ -15,6 +18,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = "idev-assistant";
   private view?: vscode.WebviewView;
   private disposables: vscode.Disposable[] = [];
+  private throttledReportWorkTime: (key: string) => void;
   constructor(context: vscode.ExtensionContext, timeTracker: TimeTracker) {
     this.context = context;
     this.timeTracker = timeTracker;
@@ -40,6 +44,9 @@ export class IdevProvider implements vscode.WebviewViewProvider {
         return Promise.reject(response);
       }
       return response;
+    });
+    this.throttledReportWorkTime = _.throttle(this.reportWorkTime.bind(this), 3000, {
+      trailing: false,
     });
   }
 
@@ -110,7 +117,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
       }
 
       case "uploadWorkload": {
-        this.reportWorkTime(message.key);
+        this.throttledReportWorkTime(message.key);
         break;
         // this.timeTracker.stopTracking();
         // this.updateFrontendWorkLoad();
@@ -146,7 +153,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
     //   },
     // });
 
-    webviewView.webview.onDidReceiveMessage(this.handleMessage.bind(this));
+    // webviewView.webview.onDidReceiveMessage(this.handleMessage.bind(this));
 
     webviewView.onDidChangeVisibility(() => {
       if (webviewView.visible) {
@@ -199,9 +206,10 @@ export class IdevProvider implements vscode.WebviewViewProvider {
       }
       const { startTimestamp, totalDuration, lastActivity } = selectIssue;
       const userId = (this.context.globalState.get("userInfo") as UserInfo).id;
+
       const response = await this.request.post("/issuePoint/add", {
         issueKey: key,
-        point: totalDuration / (24 * 3600 * 1000),
+        point: (totalDuration / (24 * 3600 * 1000)).toFixed(4),
         userId: userId,
         fromTime: startTimestamp.valueOf(),
         toTime: lastActivity.valueOf(),
