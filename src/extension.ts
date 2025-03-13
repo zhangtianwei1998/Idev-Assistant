@@ -7,11 +7,18 @@ import { TimeTracker } from "./workload/TimeTracker";
 import { GitBranchWatcher } from "./gitListener";
 import { getIssueKeyFromBranch } from "./utilities/judgeBranchMatch";
 import { IssueData } from "./types/frontendtype";
+import { exactThreshold, fuzzyThreshold } from "./constant";
 
 export function activate(context: ExtensionContext) {
   const statusBarManager = new StatusBarManager(context);
-  const timeTracker = new TimeTracker(context, statusBarManager, 30000);
+  const timeTracker = new TimeTracker(context, statusBarManager);
   const idevProvider = new IdevProvider(context, timeTracker);
+
+  const viewProviderDisposable = vscode.window.registerWebviewViewProvider(
+    IdevProvider.viewType,
+    idevProvider,
+    { webviewOptions: { retainContextWhenHidden: true } }
+  );
 
   const watcher = new GitBranchWatcher([
     (current: string) => {
@@ -27,52 +34,48 @@ export function activate(context: ExtensionContext) {
     },
   ]);
 
-  context.subscriptions.push(
-    statusBarManager,
-    timeTracker,
-    idevProvider,
-    vscode.window.registerWebviewViewProvider(IdevProvider.viewType, idevProvider, {
-      webviewOptions: { retainContextWhenHidden: true },
-    }),
-    vscode.commands.registerCommand("idev.refresh", () => {
-      idevProvider.refresh();
-    }),
-    watcher
-  );
+  const refreshCommandDisposable = vscode.commands.registerCommand("idev.refresh", () => {
+    idevProvider.refresh();
+  });
 
-  let tokendisposable = vscode.commands.registerCommand("extension.idevLogout", function () {
-    // 清除 idevToken
+  const tokenDisposable = vscode.commands.registerCommand("extension.idevLogout", () => {
     context.globalState.update("idevToken", undefined);
     timeTracker.clearWorkData();
     vscode.window.showInformationMessage("已退出登录");
     idevProvider.refresh();
   });
 
-  context.subscriptions.push(tokendisposable);
-
-  let workloadDisposable = vscode.commands.registerCommand("extension.clearWorkload", function () {
+  const workloadDisposable = vscode.commands.registerCommand("extension.clearWorkload", () => {
     vscode.window.showInformationMessage("工作量数据已全部清除");
     timeTracker.clearWorkData();
   });
 
-  context.subscriptions.push(workloadDisposable);
+  let switchDisposable = vscode.commands.registerCommand("extension.setWorkloadMode", async () => {
+    const modes = [
+      { label: "精确模式", value: "exact", time: exactThreshold },
+      { label: "模糊模式", value: "fuzzy", time: fuzzyThreshold },
+    ];
 
-  // let swithcDisposable = vscode.commands.registerCommand("extension.setWorkloadMode", async () => {
-  //   const modes = [
-  //     { label: "精确模式", value: "exact" },
-  //     { label: "模糊模式", value: "fuzzy" },
-  //   ];
+    const selected = await vscode.window.showQuickPick(modes, {
+      placeHolder: "请选择工作模式",
+      ignoreFocusOut: true,
+    });
 
-  //   const selected = await vscode.window.showQuickPick(modes, {
-  //     placeHolder: "请选择工作模式",
-  //     ignoreFocusOut: true,
-  //   });
+    if (selected) {
+      await context.globalState.update("idleThreshold", selected.time);
+      vscode.window.showInformationMessage(`工时统计模式已切换至${selected.label}`);
+    }
+  });
 
-  //   if (selected) {
-  //     await context.globalState.update("workloadMode", selected.value);
-  //     vscode.window.showInformationMessage(`工时统计模式已切换至${selected.label}`);
-  //   }
-  // });
-
-  // context.subscriptions.push(swithcDisposable);
+  context.subscriptions.push(
+    statusBarManager,
+    timeTracker,
+    idevProvider,
+    watcher,
+    viewProviderDisposable,
+    refreshCommandDisposable,
+    tokenDisposable,
+    workloadDisposable,
+    switchDisposable
+  );
 }

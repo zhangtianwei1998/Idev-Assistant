@@ -3,6 +3,7 @@ import * as dayjs from "dayjs";
 import * as lodash from "lodash";
 import { getDurationString } from "../utilities/getduration";
 import { StatusBarManager } from "../statusBar";
+import { exactThreshold } from "../constant";
 
 const { throttle } = lodash;
 
@@ -29,19 +30,13 @@ export class TimeTracker {
   private workingIssue: WorkingIssueData = { id: "", isWorking: false };
   private workLoadData: WorkdataType = {};
   private statusBarManager: StatusBarManager;
-  private readonly idleThreshold: number;
   private activityTimer?: NodeJS.Timeout;
   private context: vscode.ExtensionContext;
   private disposables: vscode.Disposable[] = [];
   private fallback?: () => void;
 
-  constructor(
-    context: vscode.ExtensionContext,
-    statusBarManager: StatusBarManager,
-    idleThreshold?: number
-  ) {
+  constructor(context: vscode.ExtensionContext, statusBarManager: StatusBarManager) {
     this.context = context;
-    this.idleThreshold = idleThreshold ?? 300000;
     this.statusBarManager = statusBarManager;
     this.workingIssue = context.globalState.get<WorkingIssueData | undefined>("workingIssue") || {
       id: "",
@@ -107,7 +102,7 @@ export class TimeTracker {
       return;
     }
     const idleTime = dayjs().diff(curIssue.lastActivity);
-    if (idleTime < this.idleThreshold) {
+    if (idleTime < (Number(this.context.globalState.get("idleThreshold")) || exactThreshold)) {
       curIssue.totalDuration += 1000;
     } else {
       this.stopTracking();

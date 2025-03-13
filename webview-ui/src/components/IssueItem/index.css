@@ -2,8 +2,8 @@
   box-sizing: border-box;
   width: 100%;
   border-radius: 4px;
-  border: 2px solid #10629c;
-
+  border: 2px solid #484848;
+  box-shadow: 2px 2px 3px black;
   padding: 4px 8px;
   margin: 5px 0;
   overflow: hidden;
@@ -17,8 +17,14 @@
   0% {
     box-shadow: 0 0 0px 0px white;
   }
+  25% {
+    box-shadow: 1px 1px 3px white;
+  }
   50% {
-    box-shadow: 0 0 5px 2px white;
+    box-shadow: 2px 2px 3px white;
+  }
+  75% {
+    box-shadow: 1px 1px 3px white;
   }
   100% {
     box-shadow: 0 0 0px 0px white;
