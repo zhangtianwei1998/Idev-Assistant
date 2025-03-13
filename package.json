@@ -3,7 +3,7 @@
   "displayName": "Idev Assistant",
   "publisher": "GG-bond-ZTW",
   "description": "A vscode extension for the requirements management tool Idev2, that helps users automatically count coding time by issue",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "engines": {
     "vscode": "^1.75.0"
   },

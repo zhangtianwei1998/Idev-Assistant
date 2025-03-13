@@ -105,18 +105,24 @@ function App() {
   return (
     <main>
       {issueList ? (
-        issueList.map((item) => (
-          <IssueItem
-            issueData={item}
-            workingIssue={workIssue}
-            workdata={workload ? workload?.[item.key] : ""}></IssueItem>
-        ))
-      ) : (
-        <div className="noReultText">
-          <div className="noReult">
-            <SvgIcon iconName="operation/no_result"></SvgIcon>
+        issueList.length === 0 ? (
+          <div className="noReultText">
+            <div className="noReult">
+              <SvgIcon iconName="operation/no_result"></SvgIcon>
+            </div>
+            暂无分配给你的Issue
           </div>
-          暂无分配给你的Issue
+        ) : (
+          issueList.map((item) => (
+            <IssueItem
+              issueData={item}
+              workingIssue={workIssue}
+              workdata={workload ? workload?.[item.key] : ""}></IssueItem>
+          ))
+        )
+      ) : (
+        <div className="loaderWrap">
+          <div className="loader"></div>
         </div>
       )}
     </main>

@@ -201,7 +201,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
         vscode.window.showInformationMessage(`Issue ${key} 上未登记工时`);
         return;
       }
-      if (selectIssue?.totalDuration && selectIssue?.totalDuration / (24 * 3600 * 1000) < 0.001) {
+      if (selectIssue?.totalDuration && selectIssue?.totalDuration / (8 * 3600 * 1000) < 0.001) {
         vscode.window.showInformationMessage(`Issue ${key} 上登记工时小于0.001人天  无法登记`);
         return;
       }
@@ -214,7 +214,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
 
       const response = await this.request.post("/issuePoint/add", {
         issueKey: key,
-        point: (totalDuration / (24 * 3600 * 1000)).toFixed(3),
+        point: (totalDuration / (8 * 3600 * 1000)).toFixed(3),
         userId: userId,
         fromTime: startTimestamp.valueOf(),
         toTime: lastActivity.valueOf(),

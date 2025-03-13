@@ -57,6 +57,8 @@
 }
 
 .issuetitle {
+  padding: 3px 0px;
+  font-weight: bold;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
