@@ -4,6 +4,7 @@ import "./App.css";
 import { useEffect, useState } from "react";
 import { IssueData, UserInfo, WorkingIssueData } from "./type";
 import IssueItem from "./components/IssueItem";
+import SvgIcon from "./components/SvgIcon";
 
 function App() {
   const [userInfo, setUserInfo] = useState<UserInfo>();
@@ -101,18 +102,23 @@ function App() {
     window.addEventListener("message", messageHandler);
   }, []);
 
-  console.log("testlist", { issueList, workload, workIssue });
-
   return (
     <main>
-      {issueList
-        ? issueList.map((item) => (
-            <IssueItem
-              issueData={item}
-              workingIssue={workIssue}
-              workdata={workload ? workload?.[item.key] : ""}></IssueItem>
-          ))
-        : null}
+      {issueList ? (
+        issueList.map((item) => (
+          <IssueItem
+            issueData={item}
+            workingIssue={workIssue}
+            workdata={workload ? workload?.[item.key] : ""}></IssueItem>
+        ))
+      ) : (
+        <div className="noReultText">
+          <div className="noReult">
+            <SvgIcon iconName="operation/no_result"></SvgIcon>
+          </div>
+          暂无分配给你的Issue
+        </div>
+      )}
     </main>
   );
 }

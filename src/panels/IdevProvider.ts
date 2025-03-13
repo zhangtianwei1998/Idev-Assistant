@@ -5,7 +5,7 @@ import { getUri } from "../utilities/getUri";
 
 import { getNonce } from "../utilities/getNonce";
 import axios, { AxiosInstance } from "axios";
-import { basicUrl, issueParmas, loginUrl } from "../constant";
+import { basicUrl, getIssueUrl, issueParmas, loginUrl } from "../constant";
 import { exec } from "child_process";
 
 import { TimeTracker } from "../workload/TimeTracker";
@@ -80,10 +80,6 @@ export class IdevProvider implements vscode.WebviewViewProvider {
   public refresh() {
     if (this.view) {
       this.view.webview.html = this.getWebviewContent(this.view.webview, this.context.extensionUri);
-      console.log(
-        "testcontent",
-        this.getWebviewContent(this.view.webview, this.context.extensionUri)
-      );
       this.getBasicData();
       this.view.webview.onDidReceiveMessage(this.handleMessage.bind(this));
     }
@@ -108,6 +104,10 @@ export class IdevProvider implements vscode.WebviewViewProvider {
       //     vscode.window.showInformationMessage(`${branchName} link success`);
       //   });
       // }
+      case "openIssue": {
+        vscode.env.openExternal(vscode.Uri.parse(getIssueUrl(message.key)));
+        break;
+      }
       case "startwork": {
         this.timeTracker.startTracking(message.issueKey);
         this.updateFrontendWorkLoad();
@@ -214,7 +214,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
 
       const response = await this.request.post("/issuePoint/add", {
         issueKey: key,
-        point: (totalDuration / (24 * 3600 * 1000)).toFixed(4),
+        point: (totalDuration / (24 * 3600 * 1000)).toFixed(3),
         userId: userId,
         fromTime: startTimestamp.valueOf(),
         toTime: lastActivity.valueOf(),

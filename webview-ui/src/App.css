@@ -5,3 +5,15 @@ main {
   align-items: flex-start;
   height: 100%;
 }
+
+.noReult {
+  font-size: 80px;
+}
+
+.noReultText {
+  font-size: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}

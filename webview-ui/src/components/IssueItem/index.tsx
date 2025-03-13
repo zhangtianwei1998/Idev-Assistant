@@ -3,7 +3,7 @@ import { IssueData, TrackingState, WorkingIssueData } from "../../type";
 import SvgIcon from "../SvgIcon";
 import IssueTypeIcon from "../IssueTypeIcon";
 import { vscode } from "../../utilities/vscode";
-import { VSCodeBadge, VSCodeButton, VSCodeTag } from "@vscode/webview-ui-toolkit/react";
+import { VSCodeBadge, VSCodeButton, VSCodeLink, VSCodeTag } from "@vscode/webview-ui-toolkit/react";
 import "./index.css";
 
 type Props = {
@@ -34,13 +34,25 @@ const IssueItem: FC<Props> = (props) => {
     });
   }
 
+  function handleOpenIssue() {
+    vscode.postMessage({
+      command: "openIssue",
+      key: issueData.key,
+    });
+  }
+
   return (
-    <div className={`issueRoot ${workingIssue?.id === issueData.key ? "activateIssue" : ""}`}>
+    <div
+      className={`issueRoot ${workingIssue?.id === issueData.key ? "activateIssue" : ""} ${
+        showPause(issueData.key, workingIssue) ? "breathing-border" : ""
+      }`}>
       <div className="issueheader">
         <div className="headerleft">
           <IssueTypeIcon iconId={issueData.iconId} />
           &nbsp;
-          {issueData.key}
+          <VSCodeLink onClick={handleOpenIssue}>
+            <div className="issueKey">{issueData.key}</div>
+          </VSCodeLink>
         </div>
         <div className="headerRight">
           {showPause(issueData.key, workingIssue) ? (
@@ -65,7 +77,7 @@ const IssueItem: FC<Props> = (props) => {
         </div>
       </div>
       <div className="issueheader" style={{ marginTop: 4 }}>
-        <div className="issuetitle"> {issueData.title}</div>
+        <div className="issuetitle">{issueData.title} </div>
         {workdata ? <div className="workTag"> {workdata} </div> : null}
       </div>
     </div>

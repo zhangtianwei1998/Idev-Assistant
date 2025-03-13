@@ -14,3 +14,9 @@ export const basicUrl = isProd
 export const loginUrl = isProd
   ? "https://idev2.ctripcorp.com/vscodeExtension"
   : "http://sharklocal.ctripcorp.com:5173/vscodeExtension";
+
+export const getIssueUrl = (issueKey: string) => {
+  return isProd
+    ? `https://idev2.ctripcorp.com/issueDetail/${issueKey}`
+    : `https://idev2-11.fat6.qa.nt.ctripcorp.com/issueDetail/${issueKey}`;
+};

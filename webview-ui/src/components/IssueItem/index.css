@@ -9,6 +9,22 @@
   overflow: hidden;
 }
 
+.breathing-border {
+  animation: breathing 2s infinite;
+}
+
+@keyframes breathing {
+  0% {
+    box-shadow: 0 0 0px 0px white;
+  }
+  50% {
+    box-shadow: 0 0 5px 2px white;
+  }
+  100% {
+    box-shadow: 0 0 0px 0px white;
+  }
+}
+
 .activateIssue {
   border: 2px solid white;
 }
@@ -54,4 +70,11 @@
   background-color: grey;
   border-radius: 5px;
   padding: 2px 4px;
+}
+
+.issueKey {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 3px;
 }
