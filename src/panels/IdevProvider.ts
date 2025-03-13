@@ -81,7 +81,6 @@ export class IdevProvider implements vscode.WebviewViewProvider {
     if (this.view) {
       this.view.webview.html = this.getWebviewContent(this.view.webview, this.context.extensionUri);
       this.getBasicData();
-      this.view.webview.onDidReceiveMessage(this.handleMessage.bind(this));
     }
   }
 
@@ -140,6 +139,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
     };
 
     this.refresh();
+    this.view.webview.onDidReceiveMessage(this.handleMessage.bind(this));
     // webviewView.webview.html = this.getWebviewContent(
     //   webviewView.webview,
     //   this.context.extensionUri

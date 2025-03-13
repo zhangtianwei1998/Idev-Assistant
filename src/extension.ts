@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import { IdevProvider } from "./panels/IdevProvider";
 import { extractTokenFromUri } from "./utilities/extractTokenFromUri";
 import { StatusBarManager } from "./statusBar";
-import { TimeTracker, WorkdataType } from "./workload/TimeTracker";
+import { TimeTracker } from "./workload/TimeTracker";
 import { GitBranchWatcher } from "./gitListener";
 import { getIssueKeyFromBranch } from "./utilities/judgeBranchMatch";
 import { IssueData } from "./types/frontendtype";
@@ -66,7 +66,6 @@ export function activate(context: ExtensionContext) {
   context.subscriptions.push(tokendisposable);
 
   let workloadDisposable = vscode.commands.registerCommand("extension.clearWorkload", function () {
-    context.globalState.update("workLoadData", undefined);
     vscode.window.showInformationMessage("工作量数据已全部清除");
     timeTracker.clearWorkData();
   });

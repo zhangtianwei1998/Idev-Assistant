@@ -103,6 +103,9 @@ export class TimeTracker {
 
   private updateduration() {
     const curIssue = this.workLoadData[this.workingIssue.id];
+    if (!curIssue) {
+      return;
+    }
     const idleTime = dayjs().diff(curIssue.lastActivity);
     if (idleTime < this.idleThreshold) {
       curIssue.totalDuration += 1000;
@@ -185,6 +188,9 @@ export class TimeTracker {
     }
     this.saveState();
     this.statusBarManager.updateStatusBar(this.workingIssue);
+    if (this.fallback) {
+      this.fallback();
+    }
   }
 
   public dispose() {
