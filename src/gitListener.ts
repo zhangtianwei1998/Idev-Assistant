@@ -13,8 +13,9 @@ export class GitBranchWatcher {
   private branchMap = new Map<string, string>();
   private retryTimer: NodeJS.Timeout | null = null;
 
-  constructor() {
+  constructor(callbacks: BranchChangeCallback[]) {
     this.initializeWithRetry();
+    this.callbacks = callbacks;
   }
 
   private async initializeWithRetry(retryCount = 0) {
@@ -86,12 +87,12 @@ export class GitBranchWatcher {
     this.callbacks.forEach((callback) => callback(current, previous, repoPath));
   }
 
-  public onBranchChange(callback: BranchChangeCallback) {
-    this.callbacks.push(callback);
-    return new vscode.Disposable(() => {
-      this.callbacks = this.callbacks.filter((cb) => cb !== callback);
-    });
-  }
+  // public onBranchChange(callback: BranchChangeCallback) {
+  //   this.callbacks.push(callback);
+  //   return new vscode.Disposable(() => {
+  //     this.callbacks = this.callbacks.filter((cb) => cb !== callback);
+  //   });
+  // }
 
   public dispose() {
     this.disposables.forEach((d) => d.dispose());

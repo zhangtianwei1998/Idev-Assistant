@@ -1,8 +1,7 @@
-import { commands, ExtensionContext } from "vscode";
+import { ExtensionContext } from "vscode";
 import * as vscode from "vscode";
 
 import { IdevProvider } from "./panels/IdevProvider";
-import { extractTokenFromUri } from "./utilities/extractTokenFromUri";
 import { StatusBarManager } from "./statusBar";
 import { TimeTracker } from "./workload/TimeTracker";
 import { GitBranchWatcher } from "./gitListener";
@@ -14,6 +13,20 @@ export function activate(context: ExtensionContext) {
   const timeTracker = new TimeTracker(context, statusBarManager, 30000);
   const idevProvider = new IdevProvider(context, timeTracker);
 
+  const watcher = new GitBranchWatcher([
+    (current: string) => {
+      const issueKey = getIssueKeyFromBranch(
+        current,
+        (context.globalState.get<IssueData[]>("issueList") || []).map((item) => item.key)
+      );
+      if (!issueKey) {
+        return;
+      }
+      timeTracker.startTracking(issueKey);
+      vscode.window.showInformationMessage(`${issueKey} 工时统计开始`);
+    },
+  ]);
+
   context.subscriptions.push(
     statusBarManager,
     timeTracker,
@@ -23,36 +36,8 @@ export function activate(context: ExtensionContext) {
     }),
     vscode.commands.registerCommand("idev.refresh", () => {
       idevProvider.refresh();
-    })
-  );
-
-  const watcher = new GitBranchWatcher();
-
-  const disposable = watcher.onBranchChange((current) => {
-    const issueKey = getIssueKeyFromBranch(
-      current,
-      (context.globalState.get<IssueData[]>("issueList") || []).map((item) => item.key)
-    );
-    if (!issueKey) {
-      return;
-    }
-    timeTracker.startTracking(issueKey);
-  });
-
-  context.subscriptions.push(watcher, disposable);
-
-  context.subscriptions.push(
-    vscode.window.registerUriHandler({
-      handleUri(uri: vscode.Uri) {
-        if (uri.path === "/handleLoginCallback") {
-          const token = extractTokenFromUri(uri);
-          if (token) {
-            context.globalState.update("idevToken", token);
-            idevProvider.getBasicData();
-          }
-        }
-      },
-    })
+    }),
+    watcher
   );
 
   let tokendisposable = vscode.commands.registerCommand("extension.idevLogout", function () {
