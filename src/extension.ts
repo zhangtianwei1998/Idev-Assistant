@@ -8,6 +8,7 @@ import { GitBranchWatcher } from "./gitListener";
 import { getIssueKeyFromBranch } from "./utilities/judgeBranchMatch";
 import { IssueData } from "./types/frontendtype";
 import { exactThreshold, fuzzyThreshold } from "./constant";
+import { extractTokenFromUri } from "./utilities/extractTokenFromUri";
 
 export function activate(context: ExtensionContext) {
   const statusBarManager = new StatusBarManager(context);
@@ -36,6 +37,18 @@ export function activate(context: ExtensionContext) {
 
   const refreshCommandDisposable = vscode.commands.registerCommand("idev.refresh", () => {
     idevProvider.refresh();
+  });
+
+  const loginCallbackDisposabel = vscode.window.registerUriHandler({
+    handleUri(uri: vscode.Uri) {
+      if (uri.path === "/handleLoginCallback") {
+        const token = extractTokenFromUri(uri);
+        if (token) {
+          context.globalState.update("idevToken", token);
+          idevProvider.getBasicData();
+        }
+      }
+    },
   });
 
   const tokenDisposable = vscode.commands.registerCommand("extension.idevLogout", () => {
@@ -74,6 +87,7 @@ export function activate(context: ExtensionContext) {
     watcher,
     viewProviderDisposable,
     refreshCommandDisposable,
+    loginCallbackDisposabel,
     tokenDisposable,
     workloadDisposable,
     switchDisposable

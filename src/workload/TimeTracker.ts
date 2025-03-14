@@ -34,6 +34,7 @@ export class TimeTracker {
   private context: vscode.ExtensionContext;
   private disposables: vscode.Disposable[] = [];
   private fallback?: () => void;
+  private lastProcessedTime?: dayjs.Dayjs;
 
   constructor(context: vscode.ExtensionContext, statusBarManager: StatusBarManager) {
     this.context = context;
@@ -63,7 +64,6 @@ export class TimeTracker {
       id: id === undefined ? this.workingIssue.id : id,
       isWorking: isWorking === undefined ? this.workingIssue.isWorking : isWorking,
     };
-
     this.statusBarManager.updateStatusBar(this.workingIssue);
   }
 
@@ -101,9 +101,14 @@ export class TimeTracker {
     if (!curIssue) {
       return;
     }
+    const now = dayjs();
+    const delta = now.diff(this.lastProcessedTime);
+    this.lastProcessedTime = now;
     const idleTime = dayjs().diff(curIssue.lastActivity);
-    if (idleTime < (Number(this.context.globalState.get("idleThreshold")) || exactThreshold)) {
-      curIssue.totalDuration += 1000;
+    const idleThreshold = Number(this.context.globalState.get("idleThreshold")) || exactThreshold;
+    // console.log("testidleTime", { idleTime, duration: curIssue.totalDuration / 1000 });
+    if (idleTime < idleThreshold) {
+      curIssue.totalDuration += delta;
     } else {
       this.stopTracking();
     }
@@ -145,7 +150,7 @@ export class TimeTracker {
     if (!this.activityTimer) {
       this.activityTimer = setInterval(() => {
         this.updateduration();
-      }, 1000);
+      }, 5000);
     }
     this.saveState();
     if (this.fallback) {

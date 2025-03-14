@@ -123,9 +123,6 @@ export class IdevProvider implements vscode.WebviewViewProvider {
       case "uploadWorkload": {
         this.throttledReportWorkTime(message.key);
         break;
-        // this.timeTracker.stopTracking();
-        // this.updateFrontendWorkLoad();
-        // vscode.window.showInformationMessage("工作时间统计已结束");
       }
     }
   }
@@ -140,26 +137,8 @@ export class IdevProvider implements vscode.WebviewViewProvider {
 
     this.refresh();
     this.view.webview.onDidReceiveMessage(this.handleMessage.bind(this));
-    // webviewView.webview.html = this.getWebviewContent(
-    //   webviewView.webview,
-    //   this.context.extensionUri
-    // );
     this.updateFrontendWorkLoad();
-
     this.timeTracker.addFallback(() => this.updateFrontendWorkLoad());
-
-    // const pushWorkloadtimer = setInterval(() => {
-    //   this.updateFrontendWorkLoad();
-    // }, 10000);
-
-    // this.disposables.push({
-    //   dispose: () => {
-    //     clearInterval(pushWorkloadtimer);
-    //   },
-    // });
-
-    // webviewView.webview.onDidReceiveMessage(this.handleMessage.bind(this));
-
     webviewView.onDidChangeVisibility(() => {
       if (webviewView.visible) {
         const token = this.context.globalState.get("idevToken");
@@ -241,6 +220,7 @@ export class IdevProvider implements vscode.WebviewViewProvider {
       workIssue: this.timeTracker.getworkingIssue(),
     });
   }
+
   public dispose() {
     this.disposables.forEach((d) => d.dispose());
     this.disposables = [];
