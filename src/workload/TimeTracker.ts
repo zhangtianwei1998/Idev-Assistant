@@ -31,6 +31,7 @@ export class TimeTracker {
   private workLoadData: WorkdataType = {};
   private statusBarManager: StatusBarManager;
   private activityTimer?: NodeJS.Timeout;
+  private fallbackTimer?: NodeJS.Timeout;
   private context: vscode.ExtensionContext;
   private disposables: vscode.Disposable[] = [];
   private fallback?: () => void;
@@ -106,7 +107,6 @@ export class TimeTracker {
     this.lastProcessedTime = now;
     const idleTime = dayjs().diff(curIssue.lastActivity);
     const idleThreshold = Number(this.context.globalState.get("idleThreshold")) || exactThreshold;
-    // console.log("testidleTime", { idleTime, duration: curIssue.totalDuration / 1000 });
     if (idleTime < idleThreshold) {
       curIssue.totalDuration += delta;
     } else {
@@ -117,9 +117,14 @@ export class TimeTracker {
 
   private startInternalTracking() {
     if (!this.activityTimer) {
+      this.updateduration();
       this.activityTimer = setInterval(() => {
         this.updateduration();
-      }, 1000);
+      }, 5000);
+
+      this.fallbackTimer = setInterval(() => {
+        this.fallback && this.fallback();
+      }, 30000);
 
       this.disposables.push({
         dispose: () => {
@@ -134,6 +139,10 @@ export class TimeTracker {
       clearInterval(this.activityTimer);
       this.activityTimer = undefined;
     }
+    if (this.fallbackTimer) {
+      clearInterval(this.fallbackTimer);
+      this.fallbackTimer = undefined;
+    }
   }
 
   private recordActivity() {
@@ -147,15 +156,9 @@ export class TimeTracker {
     this.updateWorkingIssue({ isWorking: true });
     const curIssue = this.workLoadData[this.workingIssue.id];
     curIssue.lastActivity = dayjs();
-    if (!this.activityTimer) {
-      this.activityTimer = setInterval(() => {
-        this.updateduration();
-      }, 5000);
-    }
     this.saveState();
-    if (this.fallback) {
-      this.fallback();
-    }
+    this.fallback && this.fallback();
+    this.startInternalTracking();
   }
 
   private saveState() {

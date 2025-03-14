@@ -6,7 +6,7 @@ export const issueParmas = {
 };
 
 export const exactThreshold = 1 * 60 * 1000;
-export const fuzzyThreshold = 15 * 60 * 1000;
+export const fuzzyThreshold = 10 * 60 * 1000;
 
 const isProd = true;
 
