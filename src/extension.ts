@@ -14,6 +14,7 @@ export function activate(context: ExtensionContext) {
   const statusBarManager = new StatusBarManager(context);
   const timeTracker = new TimeTracker(context, statusBarManager);
   const idevProvider = new IdevProvider(context, timeTracker);
+  context.globalState.setKeysForSync(["workLoadData"]);
 
   const viewProviderDisposable = vscode.window.registerWebviewViewProvider(
     IdevProvider.viewType,

@@ -81,6 +81,8 @@ export class IdevProvider implements vscode.WebviewViewProvider {
     if (this.view) {
       this.view.webview.html = this.getWebviewContent(this.view.webview, this.context.extensionUri);
       this.getBasicData();
+      this.timeTracker.syncWindowWorkLoad();
+      this.timeTracker.publishWorkloadUpdate();
     }
   }
 

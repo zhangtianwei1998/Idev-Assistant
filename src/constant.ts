@@ -5,8 +5,12 @@ export const issueParmas = {
   orderby: "-issueKey",
 };
 
-export const exactThreshold = 1 * 60 * 1000;
-export const fuzzyThreshold = 10 * 60 * 1000;
+export const isTestMode = false;
+
+export const exactThreshold = isTestMode ? 3 * 1000 : 1 * 60 * 1000;
+export const fuzzyThreshold = isTestMode ? 6 * 1000 : 10 * 60 * 1000;
+
+export const intervalTime = isTestMode ? 1000 : 5000;
 
 const isProd = true;
 

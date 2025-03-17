@@ -3,7 +3,7 @@ import * as dayjs from "dayjs";
 import * as lodash from "lodash";
 import { getDurationString } from "../utilities/getduration";
 import { StatusBarManager } from "../statusBar";
-import { exactThreshold } from "../constant";
+import { exactThreshold, intervalTime } from "../constant";
 
 const { throttle } = lodash;
 
@@ -31,10 +31,9 @@ export class TimeTracker {
   private workLoadData: WorkdataType = {};
   private statusBarManager: StatusBarManager;
   private activityTimer?: NodeJS.Timeout;
-  private fallbackTimer?: NodeJS.Timeout;
   private context: vscode.ExtensionContext;
   private disposables: vscode.Disposable[] = [];
-  private fallback?: () => void;
+  private workLoadChangeCb: (() => void)[] = [];
   private lastProcessedTime?: dayjs.Dayjs;
 
   constructor(context: vscode.ExtensionContext, statusBarManager: StatusBarManager) {
@@ -56,8 +55,13 @@ export class TimeTracker {
     );
   }
 
+  //添加工作量更新后要执行的回调函数
   public addFallback(fallback: () => void) {
-    this.fallback = fallback;
+    this.workLoadChangeCb.push(fallback);
+  }
+
+  public publishWorkloadUpdate() {
+    this.workLoadChangeCb.forEach((cb) => cb());
   }
 
   private updateWorkingIssue({ id, isWorking }: { id?: string; isWorking?: boolean }) {
@@ -83,18 +87,15 @@ export class TimeTracker {
     this.stopInternalTracking();
     this.startInternalTracking();
     this.saveState();
-    if (this.fallback) {
-      this.fallback();
-    }
+    this.publishWorkloadUpdate();
   }
 
   public stopTracking() {
     this.updateWorkingIssue({ isWorking: false });
+    this.lastProcessedTime = undefined;
     this.stopInternalTracking();
     this.saveState();
-    if (this.fallback) {
-      this.fallback();
-    }
+    this.publishWorkloadUpdate();
   }
 
   private updateduration() {
@@ -107,24 +108,21 @@ export class TimeTracker {
     this.lastProcessedTime = now;
     const idleTime = dayjs().diff(curIssue.lastActivity);
     const idleThreshold = Number(this.context.globalState.get("idleThreshold")) || exactThreshold;
+    // console.log("testtime", { idleTime, idleThreshold, delta, duration: curIssue.totalDuration });
     if (idleTime < idleThreshold) {
       curIssue.totalDuration += delta;
     } else {
       this.stopTracking();
     }
-    // this.saveState();
+    this.publishWorkloadUpdate();
   }
 
   private startInternalTracking() {
+    this.updateduration();
     if (!this.activityTimer) {
-      this.updateduration();
       this.activityTimer = setInterval(() => {
         this.updateduration();
-      }, 5000);
-
-      this.fallbackTimer = setInterval(() => {
-        this.fallback && this.fallback();
-      }, 30000);
+      }, intervalTime);
 
       this.disposables.push({
         dispose: () => {
@@ -138,10 +136,6 @@ export class TimeTracker {
     if (this.activityTimer) {
       clearInterval(this.activityTimer);
       this.activityTimer = undefined;
-    }
-    if (this.fallbackTimer) {
-      clearInterval(this.fallbackTimer);
-      this.fallbackTimer = undefined;
     }
   }
 
@@ -157,8 +151,15 @@ export class TimeTracker {
     const curIssue = this.workLoadData[this.workingIssue.id];
     curIssue.lastActivity = dayjs();
     this.saveState();
-    this.fallback && this.fallback();
+    this.publishWorkloadUpdate();
     this.startInternalTracking();
+  }
+
+  private judgeOneMoreWorkingIssue() {
+    const storage = this.context.globalState.get("workingIssue") as WorkingIssueData;
+    if (storage?.id !== this.workingIssue.id && storage?.isWorking && this.workingIssue.isWorking) {
+      vscode.window.showInformationMessage(`您正在通过多个vscode窗口同时进行多个Issue工作量统计`);
+    }
   }
 
   private saveState() {
@@ -191,14 +192,17 @@ export class TimeTracker {
     }
     this.saveState();
     this.statusBarManager.updateStatusBar(this.workingIssue);
-    if (this.fallback) {
-      this.fallback();
-    }
+    this.publishWorkloadUpdate();
   }
 
   public dispose() {
     this.stopInternalTracking();
     this.disposables.forEach((d) => d.dispose());
     this.disposables = [];
+  }
+
+  //同步多个vscode窗口的工作量
+  public syncWindowWorkLoad() {
+    this.workLoadData = this.context.globalState.get("workLoadData") || {};
   }
 }
