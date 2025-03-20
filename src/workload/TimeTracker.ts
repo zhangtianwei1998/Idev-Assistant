@@ -39,7 +39,7 @@ export class TimeTracker {
   constructor(context: vscode.ExtensionContext, statusBarManager: StatusBarManager) {
     this.context = context;
     this.statusBarManager = statusBarManager;
-    this.workingIssue = context.globalState.get<WorkingIssueData | undefined>("workingIssue") || {
+    this.workingIssue = context.globalState.get<WorkingIssueData>("workingIssue") || {
       id: "",
       isWorking: false,
     };

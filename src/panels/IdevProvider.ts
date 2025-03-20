@@ -36,7 +36,6 @@ export class IdevProvider implements vscode.WebviewViewProvider {
     });
     this.request.interceptors.response.use((response) => {
       if (response.status === 200 && response.data.code === 401) {
-        // vscode.window.showErrorMessage("登录已过期，请重新登录");
         this.context.globalState.update("idevToken", undefined);
         this.context.globalState.update("userInfo", undefined);
         this.context.globalState.update("issueList", undefined);
