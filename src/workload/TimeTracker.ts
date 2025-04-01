@@ -39,7 +39,7 @@ export class TimeTracker {
   constructor(context: vscode.ExtensionContext, statusBarManager: StatusBarManager) {
     this.context = context;
     this.statusBarManager = statusBarManager;
-    this.workingIssue = context.globalState.get<WorkingIssueData | undefined>("workingIssue") || {
+    this.workingIssue = context.globalState.get<WorkingIssueData>("workingIssue") || {
       id: "",
       isWorking: false,
     };
@@ -104,11 +104,10 @@ export class TimeTracker {
       return;
     }
     const now = dayjs();
-    const delta = now.diff(this.lastProcessedTime);
+    const delta = Math.max(now.diff(this.lastProcessedTime), 2 * intervalTime);
     this.lastProcessedTime = now;
     const idleTime = dayjs().diff(curIssue.lastActivity);
     const idleThreshold = Number(this.context.globalState.get("idleThreshold")) || exactThreshold;
-    // console.log("testtime", { idleTime, idleThreshold, delta, duration: curIssue.totalDuration });
     if (idleTime < idleThreshold) {
       curIssue.totalDuration += delta;
     } else {
@@ -118,7 +117,6 @@ export class TimeTracker {
   }
 
   private startInternalTracking() {
-    this.updateduration();
     if (!this.activityTimer) {
       this.activityTimer = setInterval(() => {
         this.updateduration();

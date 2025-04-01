@@ -22,6 +22,11 @@ export const loginUrl = isProd
   ? "https://idev2.ctripcorp.com/vscodeExtension"
   : "http://sharklocal.ctripcorp.com:5173/vscodeExtension";
 
+export function getLoginUrl(queryParams: Record<string, string>) {
+  const queryString = new URLSearchParams(queryParams).toString();
+  return `${loginUrl}?${queryString}`;
+}
+
 export const getIssueUrl = (issueKey: string) => {
   return isProd
     ? `https://idev2.ctripcorp.com/issueDetail/${issueKey}`

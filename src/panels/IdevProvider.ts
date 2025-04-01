@@ -5,8 +5,7 @@ import { getUri } from "../utilities/getUri";
 
 import { getNonce } from "../utilities/getNonce";
 import axios, { AxiosInstance } from "axios";
-import { basicUrl, getIssueUrl, issueParmas, loginUrl } from "../constant";
-import { exec } from "child_process";
+import { basicUrl, getIssueUrl, getLoginUrl, issueParmas } from "../constant";
 
 import { TimeTracker } from "../workload/TimeTracker";
 import { UserInfo } from "../types/backendType";
@@ -36,11 +35,14 @@ export class IdevProvider implements vscode.WebviewViewProvider {
     });
     this.request.interceptors.response.use((response) => {
       if (response.status === 200 && response.data.code === 401) {
-        // vscode.window.showErrorMessage("登录已过期，请重新登录");
         this.context.globalState.update("idevToken", undefined);
         this.context.globalState.update("userInfo", undefined);
         this.context.globalState.update("issueList", undefined);
-        vscode.env.openExternal(vscode.Uri.parse(loginUrl));
+        vscode.env.openExternal(
+          vscode.Uri.parse(
+            getLoginUrl({ appName: vscode.env.appName, uriScheme: vscode.env.uriScheme })
+          )
+        );
         return Promise.reject(response);
       }
       return response;
