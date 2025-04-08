@@ -104,7 +104,7 @@ export class TimeTracker {
       return;
     }
     const now = dayjs();
-    const delta = Math.max(now.diff(this.lastProcessedTime), 2 * intervalTime);
+    const delta = Math.min(now.diff(this.lastProcessedTime), 2 * intervalTime);
     this.lastProcessedTime = now;
     const idleTime = dayjs().diff(curIssue.lastActivity);
     const idleThreshold = Number(this.context.globalState.get("idleThreshold")) || exactThreshold;

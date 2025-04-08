@@ -4,7 +4,7 @@ import * as vscode from "vscode";
 import { IdevProvider } from "./panels/IdevProvider";
 import { StatusBarManager } from "./statusBar";
 import { TimeTracker } from "./workload/TimeTracker";
-import { GitBranchWatcher } from "./gitListener";
+import { GitBranchWatcher } from "./Git/gitListener";
 import { getIssueKeyFromBranch } from "./utilities/judgeBranchMatch";
 import { IssueData } from "./types/frontendtype";
 import { exactThreshold, fuzzyThreshold } from "./constant";
